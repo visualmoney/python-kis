@@ -22,6 +22,7 @@ from pykis.api.stock.market import (
     MARKET_TYPE,
     KisMarketType,
     get_market_code,
+    get_market_type
 )
 from pykis.client.account import KisAccountNumber
 from pykis.client.page import KisPage
@@ -41,6 +42,27 @@ __all__ = [
     "KisBalance",
     "balance",
 ]
+
+
+def _market_from_code(code):
+    if not code:
+        return None
+
+    try:
+        return get_market_type(code)
+    except KeyError:
+        return None
+
+
+def _infer_market_from_data(data):
+    for key in ("ovrs_excg_cd", "item_lnkg_excg_cd"):
+        value = data.get(key)
+        if isinstance(value, str):
+            market = _market_from_code(value.strip().upper())
+            if market is not None:
+                return market
+
+    return None
 
 
 @runtime_checkable
@@ -621,7 +643,7 @@ class KisForeignPresentBalanceStock(KisDynamic, KisBalanceStockBase):
 
     symbol: str = KisString["pdno"]
     """종목코드"""
-    market: MARKET_TYPE = KisMarketType["ovrs_excg_cd"]
+    market: MARKET_TYPE = "KRX"
     """상품유형타입"""
     account_number: KisAccountNumber
     """계좌번호"""
@@ -645,6 +667,26 @@ class KisForeignPresentBalanceStock(KisDynamic, KisBalanceStockBase):
 
     purchase_amount_krw: Decimal = KisDecimal["pchs_rmnd_wcrc_amt"]
     """매입금액(원화)"""
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        self._needs_market_resolution = False
+
+        data = getattr(self, "__data__", {}) or {}
+        if (market := _infer_market_from_data(data)) is not None:
+            self.market = market
+        else:
+            self._needs_market_resolution = True
+
+    def __kis_post_init__(self) -> None:
+        super().__kis_post_init__()
+
+        if getattr(self, "_needs_market_resolution", False):
+            try:
+                self.market = resolve_market(self.kis, symbol=self.symbol, quotable=False)
+            except Exception:
+                pass
 
 
 class KisForeignPresentDeposit(KisDynamic, KisDepositBase):
@@ -741,7 +783,7 @@ class KisForeignBalanceStock(KisDynamic, KisBalanceStockBase):
 
     symbol: str = KisString["ovrs_pdno"]
     """종목코드"""
-    market: MARKET_TYPE = KisMarketType["ovrs_excg_cd"]
+    market: MARKET_TYPE = "KRX"
     """상품유형타입"""
     account_number: KisAccountNumber = KisTransform(lambda x: KisAccountNumber(f"{x['cano']}-{x['acnt_prdt_cd']}"))()
     """계좌번호"""
@@ -772,6 +814,26 @@ class KisForeignBalanceStock(KisDynamic, KisBalanceStockBase):
         return self.balance.deposits[self.currency].exchange_rate
 
     exchange_rate: Decimal
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        self._needs_market_resolution = False
+
+        data = getattr(self, "__data__", {}) or {}
+        if (market := _infer_market_from_data(data)) is not None:
+            self.market = market
+        else:
+            self._needs_market_resolution = True
+
+    def __kis_post_init__(self) -> None:
+        super().__kis_post_init__()
+
+        if getattr(self, "_needs_market_resolution", False):
+            try:
+                self.market = resolve_market(self.kis, symbol=self.symbol, quotable=False)
+            except Exception:
+                pass
 
 
 class KisForeignBalance(KisPaginationAPIResponse, KisBalanceBase):
