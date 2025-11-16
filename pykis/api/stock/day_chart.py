@@ -10,6 +10,7 @@ from pykis.api.stock.trading_hours import KisTradingHours, KisTradingHoursBase
 from pykis.responses.dynamic import KisDynamic, KisList, KisObject, KisTransform
 from pykis.responses.response import KisAPIResponse, KisResponse, raise_not_found
 from pykis.responses.types import KisDecimal, KisInt, KisTime
+from pykis.utils.math import safe_divide
 from pykis.utils.timezone import TIMEZONE
 from pykis.utils.typing import Checkable
 
