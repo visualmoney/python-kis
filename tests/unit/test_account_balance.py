@@ -32,7 +32,7 @@ class AccountBalanceTests(TestCase):
         self.assertTrue(isinstance(balance, KisBalance))
         self.assertTrue(isinstance(balance.deposits["KRW"], KisDeposit))
 
-        if (usd_deposit := balance.deposits["USD"]) is not None:
+        if (usd_deposit := balance.deposits.get("USD")) is not None:
             self.assertTrue(isinstance(usd_deposit, KisDeposit))
             self.assertGreater(usd_deposit.exchange_rate, Decimal(800))
 
