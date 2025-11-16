@@ -1,15 +1,10 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING
 from unittest import TestCase
 
 from pykis import PyKis
 from pykis.api.account.balance import KisBalance, KisBalanceStock, KisDeposit
 from pykis.scope.account import KisAccount
-
-if TYPE_CHECKING:
-    from ..env import load_pykis
-else:
-    from env import load_pykis
+from tests.env import load_pykis
 
 
 class AccountBalanceTests(TestCase):

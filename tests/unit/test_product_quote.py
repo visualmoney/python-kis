@@ -1,5 +1,4 @@
 from datetime import date
-from typing import TYPE_CHECKING
 from unittest import TestCase
 
 from pykis import PyKis
@@ -7,11 +6,7 @@ from pykis.adapter.product.quote import KisQuotableProduct
 from pykis.api.stock.chart import KisChart, KisChartBar
 from pykis.api.stock.order_book import KisOrderbook, KisOrderbookItem
 from pykis.api.stock.quote import KisQuote
-
-if TYPE_CHECKING:
-    from ..env import load_pykis
-else:
-    from env import load_pykis
+from tests.env import load_pykis
 
 
 class ProductQuoteTests(TestCase):
