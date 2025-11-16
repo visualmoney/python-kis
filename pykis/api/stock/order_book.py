@@ -285,20 +285,24 @@ class KisForeignOrderbook(KisAPIResponse, KisOrderbookBase):
         output2 = data["output2"]
         count = 10 if self.market in ["NASDAQ", "NYSE"] else 1  # 미국외 시장은 1호가만 제공
 
-        self.asks = [
-            KisForeignOrderbookItem(
-                price=Decimal(output2[f"pask{i}"]),
-                volume=int(output2[f"vask{i}"]),
-            )
-            for i in range(1, 1 + count)
-        ]
-        self.bids = [
-            KisForeignOrderbookItem(
-                price=Decimal(output2[f"pbid{i}"]),
-                volume=int(output2[f"vbid{i}"]),
-            )
-            for i in range(1, 1 + count)
-        ]
+        asks = []
+        bids = []
+
+        for i in range(1, 1 + count):
+            ask_price_key, ask_volume_key = f"pask{i}", f"vask{i}"
+            if ask_price_key in output2 and output2[ask_price_key]:
+                asks.append(KisForeignOrderbookItem(
+                    price=Decimal(output2[ask_price_key]),
+                    volume=int(output2[ask_volume_key]),
+                ))
+
+            bid_price_key, bid_volume_key = f"pbid{i}", f"vbid{i}"
+            if bid_price_key in output2 and output2[bid_price_key]:
+                bids.append(KisForeignOrderbookItem(
+                    price=Decimal(output2[bid_price_key]),
+                    volume=int(output2[bid_volume_key]),
+                ))
+        self.asks, self.bids = asks, bids
 
 
 def domestic_orderbook(
