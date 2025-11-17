@@ -36,5 +36,4 @@ virtual_secret.json
 .coverage
 htmlcov/
 reports/
-poetry.lock
 poetry.toml
