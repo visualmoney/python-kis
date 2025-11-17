@@ -80,7 +80,6 @@ pytest-asyncio = "^1.3.0"
 python-dotenv = "^1.2.1"
 
 [tool.pytest]
-# Use [tool.pytest] to leverage native TOML types (supported since pytest 9.0)
 minversion = "9.0"
 pythonpath = ["."]
 testpaths = ["tests"]
