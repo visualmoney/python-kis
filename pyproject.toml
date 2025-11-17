@@ -50,7 +50,8 @@ dependencies = [
     "cryptography>=43.0.0",
     "colorlog>=6.8.2",
     "tzdata",
-    "typing-extensions"
+    "typing-extensions",
+    "python-dotenv (>=1.2.1,<2.0.0)"
 ]
 dynamic = [
     "version",
@@ -68,7 +69,28 @@ where = ["."]
 include = ["pykis"]
 exclude = ["tests"]
 
-[tool.pytest.ini_options]
-minversion = "8.0"
+[tool.poetry]
+version = "24+dev"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.1"
+pytest-cov = "^7.0.0"
+pytest-html = "^4.1.1"
+pytest-asyncio = "^1.3.0"
+python-dotenv = "^1.2.1"
+
+[tool.pytest]
+# Use [tool.pytest] to leverage native TOML types (supported since pytest 9.0)
+minversion = "9.0"
 pythonpath = ["."]
 testpaths = ["tests"]
+addopts = [
+    "--cov=pykis",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml:reports/coverage.xml",    
+    "--html=reports/test_report.html",
+    "--junitxml=reports/junit_report.xml",
+    "--self-contained-html",
+    "--import-mode=importlib"
+]
