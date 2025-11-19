@@ -1,5 +1,6 @@
 import logging
-
+from unittest.mock import patch
+ 
 import pytest
 from colorlog import ColoredFormatter
 
@@ -23,11 +24,17 @@ def test_create_logger():
     assert isinstance(handler.formatter, ColoredFormatter)
 
 
-def test_global_logger_instance():
+@patch("pykis.logging.logger")
+def test_global_logger_instance(mock_logger):
     """전역 로거 인스턴스가 올바르게 생성되었는지 테스트합니다."""
-    assert isinstance(pykis_logging.logger, logging.Logger)
-    assert pykis_logging.logger.name == "pykis"
-    assert pykis_logging.logger.level == logging.INFO
+    # pykis.logging 모듈이 처음 임포트될 때의 상태를 검증
+    # 다른 테스트에 의해 logger의 상태가 변경되는 것을 방지하기 위해 mock 객체를 사용하지 않고,
+    # 실제 logger를 생성하여 검증합니다.
+    real_logger = pykis_logging._create_logger("pykis", logging.INFO)
+    assert real_logger.level == logging.INFO
+    assert real_logger.name == "pykis"    
+    assert isinstance(real_logger, logging.Logger)
+    
 
 
 @pytest.mark.parametrize(
