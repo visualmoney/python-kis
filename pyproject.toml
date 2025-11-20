@@ -70,7 +70,13 @@ include = ["pykis"]
 exclude = ["tests"]
 
 [tool.poetry]
-version = "24+dev"
+version = "2.1.7"
+packages = [
+    { include = "pykis", from = "." },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.1"
