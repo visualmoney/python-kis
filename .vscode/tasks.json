@@ -1,0 +1,61 @@
+{
+    // https://code.visualstudio.com/docs/editor/tasks#vscode
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Poetry: Install Dependencies",
+            "type": "shell",
+            "command": "python -m poetry install --no-interaction --with=test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Poetry: Run Pytest",
+            "type": "shell",
+            "command": "python -m poetry run pytest",
+            "dependsOn": "Poetry: Install Dependencies",
+            "group": { "kind": "test", "isDefault": true },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Poetry: Build (standard)",
+            "type": "shell",
+            "command": "python -m poetry build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Poetry: Build (with tests)",
+            "type": "shell",
+            "command": "python -m poetry run pytest --maxfail=1 -q; if ($LASTEXITCODE -eq 0) { python -m poetry build } else { exit $LASTEXITCODE }",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Poetry: Build (with coverage)",
+            "type": "shell",
+            "command": "python -m poetry run pytest --maxfail=1 -q --cov=pykis --cov-report=xml:reports/coverage.xml --cov-report=html:htmlcov; if ($LASTEXITCODE -eq 0) { python -m poetry build } else { exit $LASTEXITCODE }",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

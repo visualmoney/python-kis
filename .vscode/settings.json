@@ -1,0 +1,37 @@
+{
+    "python.analysis.extraPaths": [".","tests"],
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.testing.pytestArgs": [
+        "tests",
+        "--cov=pykis",
+        "--cov-report=term-missing",
+        "--cov-report=html",
+        "--cov-report=xml:reports/coverage.xml",    
+        "--html=reports/test_report.html",
+        "--junitxml=reports/junit_report.xml",
+        "--self-contained-html",
+        "--import-mode=importlib"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "coverage-gutters.coverageReportFileName": "reports/coverage.xml",
+    "coverage-gutters.showGutterCoverage": true,
+    "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.showRulerCoverage": true,
+    "cSpell.words": [
+        "htmlcov",
+        "junitxml",
+        "pykis"
+    ],
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.pytest_cache": true,
+      "**/.mypy_cache": true,      
+      "**/*.pyc": true,
+      "**/Thumbs.db": true
+    },
+    "files.eol": "\n", // 줄 끝 문자를 LF(\n)로 통일합니다.
+    "workbench.remoteIndicator.showExtensionRecommendations": true,
+
+}

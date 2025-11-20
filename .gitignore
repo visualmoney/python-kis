@@ -3,7 +3,7 @@ test-*.py
 test.ipynb
 test-*.ipynb
 __pycache__
-.vscode
+# .vscode
 build/
 develop-eggs/
 dist/
