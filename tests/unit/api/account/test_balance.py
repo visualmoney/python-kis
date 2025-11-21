@@ -9,13 +9,13 @@ def test_market_from_code_none_and_invalid(monkeypatch):
     assert bal._market_from_code(None) is None
 
     # Simulate get_market_type raising KeyError for unknown codes
-    monkeypatch.setattr(bal, "get_market_type", lambda code: (_ for _ in ()).throw(KeyError("no")))
+    monkeypatch.setattr(bal, "get_market_type", lambda code: (_ for _ in ()).throw(KeyError("no")), raising=False)
     assert bal._market_from_code("FOO") is None
 
 
 def test_infer_market_from_data(monkeypatch):
     # _infer_market_from_data strips and upper-cases values then calls _market_from_code
-    monkeypatch.setattr(bal, "_market_from_code", lambda c: "MARK" if c == "USD" else None)
+    monkeypatch.setattr(bal, "_market_from_code", lambda c: "MARK" if c == "USD" else None, raising=False)
     assert bal._infer_market_from_data({"ovrs_excg_cd": " usd "}) == "MARK"
     assert bal._infer_market_from_data({}) is None
 

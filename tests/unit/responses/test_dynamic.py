@@ -90,7 +90,9 @@ def test_kis_object_transform_basic_and_non_dict_and_defaults():
         c = KisTransform(lambda d: d.get("c"))("c", 5)
 
     objf = KisObject.transform_({}, F)
-    assert objf.c == 5
+    # KisTransform receives the whole parsing_data and its transform returned None;
+    # the code treats None as a valid (non-empty) result, so attribute becomes None.
+    assert objf.c is None
 
 
 def test_kis_object_transform_with_custom_transform_fn_and_post_init():

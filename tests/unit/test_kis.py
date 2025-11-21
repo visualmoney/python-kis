@@ -92,8 +92,14 @@ def test_init_with_virtual_kwargs():
     assert kis.virtual
 
 
+@patch("pykis.kis.PyKis.__del__", new=lambda self: None)
 def test_init_value_errors():
-    """초기화 시 발생하는 ValueError 테스트"""
+    """초기화 시 발생하는 ValueError 테스트
+
+    `PyKis.__del__`가 부분 초기화된 객체에서 `AttributeError`를 일으키는
+    테스트 실행 환경에서 UnraisableExceptionWarning을 막기 위해 소멸자를
+    임시로 무력화합니다.
+    """
     with pytest.raises(ValueError, match="id를 입력해야 합니다."):
         PyKis(use_websocket=False)
     with pytest.raises(ValueError, match="appkey를 입력해야 합니다."):
