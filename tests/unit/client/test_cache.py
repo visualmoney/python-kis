@@ -1,4 +1,3 @@
-import time
 from datetime import datetime, timedelta
 
 import pytest
@@ -34,23 +33,47 @@ def test_set_with_datetime_expired_immediately():
     assert store.get("k_exp", str, "def") == "def"
 
 
-def test_set_with_timedelta_not_expired_until_time_passes():
+def test_set_with_timedelta_not_expired_until_time_passes(monkeypatch):
     store = KisCacheStorage()
-    # expire after short timedelta
+
+    # create a controllable datetime.now replacement
+    class DummyDateTime:
+        _now = datetime.now()
+
+        @classmethod
+        def now(cls):
+            return cls._now
+
+    # patch the module-level datetime used in pykis.client.cache
+    monkeypatch.setattr("pykis.client.cache.datetime", DummyDateTime)
+
+    # expire after 1 second from current fake now
     store.set("t", "val", expire=timedelta(seconds=1))
     assert store.get("t", str) == "val"
 
-    # wait for expiration
-    time.sleep(1.05)
+    # advance fake time past expiration
+    DummyDateTime._now = DummyDateTime._now + timedelta(seconds=2)
     assert store.get("t", str, "x") == "x"
 
 
-def test_set_with_float_seconds_expire():
+def test_set_with_float_seconds_expire(monkeypatch):
     store = KisCacheStorage()
-    # expire in 0.05 seconds
+
+    class DummyDateTime:
+        _now = datetime.now()
+
+        @classmethod
+        def now(cls):
+            return cls._now
+
+    monkeypatch.setattr("pykis.client.cache.datetime", DummyDateTime)
+
+    # expire in 0.05 seconds from fake now
     store.set("f", 3.14, expire=0.05)
     assert store.get("f", float) == 3.14
-    time.sleep(0.06)
+
+    # advance time beyond expire
+    DummyDateTime._now = DummyDateTime._now + timedelta(seconds=1)
     assert store.get("f", float, "no") == "no"
 
 
