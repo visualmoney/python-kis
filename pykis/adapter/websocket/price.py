@@ -326,3 +326,5 @@ class KisWebsocketQuotableProductMixin:
                 once=True,
                 extended=extended,
             )
+
+        raise ValueError(f"Unknown event: {event}")
