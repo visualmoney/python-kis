@@ -66,12 +66,24 @@ def test_kis_object_transform_basic_and_non_dict_and_defaults():
     obj = KisObject.transform_({"a": 10}, D)
     assert hasattr(obj, "a") and obj.a == 10
 
-    # missing field without default -> KeyError
+    # KisTransform with field=None returns None when missing -> attribute becomes None
     class E(KisDynamic):
-        b = KisTransform(lambda d: d.get("b")) ("b")
+        b = KisTransform(lambda d: d.get("b"))("b")
+
+    ev = KisObject.transform_({}, E)
+    assert hasattr(ev, "b") and ev.b is None
+
+    # if the type is a KisType (not KisTransform) and the declared field is missing, KeyError is raised
+    class ReqType(KisType):
+        def transform(self, data):
+            return data
+
+    class E2(KisDynamic):
+        # create a KisType instance with explicit field 'x' and no default
+        x = ReqType()("x")
 
     with pytest.raises(KeyError):
-        KisObject.transform_({}, E)
+        KisObject.transform_({}, E2)
 
     # with default supplied via KisTransform __call__
     class F(KisDynamic):
