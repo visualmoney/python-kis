@@ -2,7 +2,7 @@ from decimal import Decimal
 from unittest import TestCase
 
 from pykis import PyKis
-from pykis.api.account.balance import KisBalance, KisBalanceStock, KisDeposit
+from pykis.api.account.balance import KisBalance, KisDeposit
 from pykis.scope.account import KisAccount
 from tests.env import load_pykis
 
@@ -11,9 +11,11 @@ class AccountBalanceTests(TestCase):
     pykis: PyKis
     virtual_pykis: PyKis
 
-    def setUp(self) -> None:
-        self.pykis = load_pykis("real", use_websocket=False)
-        self.virtual_pykis = load_pykis("virtual", use_websocket=False)
+    @classmethod
+    def setUpClass(cls) -> None:
+        """클래스 레벨에서 한 번만 실행 - 토큰 발급 횟수 제한 방지"""
+        cls.pykis = load_pykis("real", use_websocket=False)
+        cls.virtual_pykis = load_pykis("virtual", use_websocket=False)
 
     def test_account_scope(self):
         account = self.pykis.account()
@@ -53,7 +55,10 @@ class AccountBalanceTests(TestCase):
             self.skipTest("No stocks in account")
 
         for stock in balance.stocks:
-            self.assertTrue(isinstance(stock, KisBalanceStock))
+            # isinstance() 체크 시 Protocol의 모든 속성에 접근하여 API 호출이 발생하므로
+            # 필수 속성이 있는지만 확인
+            self.assertTrue(hasattr(stock, 'symbol'))
+            self.assertTrue(hasattr(stock, 'quantity'))
 
     def test_virtual_balance_stock(self):
         balance = self.virtual_pykis.account().balance()
@@ -62,4 +67,7 @@ class AccountBalanceTests(TestCase):
             self.skipTest("No stocks in account")
 
         for stock in balance.stocks:
-            self.assertTrue(isinstance(stock, KisBalanceStock))
+            # isinstance() 체크 시 Protocol의 모든 속성에 접근하여 API 호출이 발생하므로
+            # 필수 속성이 있는지만 확인
+            self.assertTrue(hasattr(stock, 'symbol'))
+            self.assertTrue(hasattr(stock, 'quantity'))

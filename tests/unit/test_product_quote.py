@@ -15,16 +15,18 @@ from tests.env import load_pykis
 class ProductQuoteTests(TestCase):
     pykis: PyKis
 
-    def setUp(self) -> None:
+    @classmethod
+    def setUpClass(cls) -> None:
+        """클래스 레벨에서 한 번만 실행 - 토큰 발급 횟수 제한 방지"""
         import os
         # Control whether to run real integration tests via environment variable.
         # Set PYKIS_RUN_REAL=1 (or true/yes) to exercise real network calls; otherwise use the mock fixture.
         run_real = os.environ.get("PYKIS_RUN_REAL", "").lower() in ("1", "true", "yes")
         if run_real:
-            self.pykis = load_pykis("real", use_websocket=False)
+            cls.pykis = load_pykis("real", use_websocket=False)
         else:
             # load a mocked/local pykis instance to make tests hermetic and not depend on network/credentials
-            self.pykis = load_pykis("mock", use_websocket=False)
+            cls.pykis = load_pykis("mock", use_websocket=False)
 
     def test_quotable(self):
         self.assertTrue(isinstance(self.pykis.stock("005930"), KisQuotableProduct))
