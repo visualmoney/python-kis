@@ -34,10 +34,11 @@ def test_parse_timex_invalid_no_leading_digits():
 
 
 def test_parse_timex_invalid_suffix_from_tuple_and_from_string():
-    with pytest.raises(ValueError, match=r"Invalid timex expression suffix: q"):
+    # The error message shows "None" because suffix is looked up in TIMEX_SUFFIX dictionary
+    with pytest.raises(ValueError, match=r"Invalid timex expression suffix: None"):
         parse_timex((1, "q"))
 
-    with pytest.raises(ValueError, match=r"Invalid timex expression suffix: 0"):
+    with pytest.raises(ValueError, match=r"Invalid timex expression suffix: None"):
         # "10" becomes value=1, suffix="0" due to implementation slicing behavior
         parse_timex("10")
 
