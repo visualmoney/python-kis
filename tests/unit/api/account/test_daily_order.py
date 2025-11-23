@@ -188,3 +188,281 @@ def test_domestic_exchange_code_map_coverage():
     # Test special condition codes
     assert dord.DOMESTIC_EXCHANGE_CODE_MAP["81"][2] == "extended"
     assert dord.DOMESTIC_EXCHANGE_CODE_MAP["64"][2] is None
+
+
+# test_kis_daily_orders_base_getitem_by_order_number and
+# test_kis_daily_orders_base_order_by_order_number are complex tests that require
+# order equality to work properly, which is tested in test_order.py
+
+
+def test_kis_domestic_daily_order_pre_init_with_market():
+    """Test KisDomesticDailyOrder.__pre_init__ with market-specific exchange code."""
+    from pykis.utils.timezone import TIMEZONE
+    from pykis.api.stock.market import get_market_timezone
+    
+    order = object.__new__(dord.KisDomesticDailyOrder)
+    
+    # Test with US exchange code (55)
+    data = {
+        "ord_dt": "20240101",
+        "ord_tmd": "153000",
+        "excg_dvsn_cd": "55",  # US market
+        "pdno": "AAPL",
+        "sll_buy_dvsn_cd": "02",
+        "avg_prvs": "150.00",
+        "ord_unpr": "150.50",
+        "ord_qty": "10",
+        "tot_ccld_qty": "5",
+        "rmn_qty": "5",
+        "rjct_qty": "0",
+        "ccld_yn": "N",
+        "prdt_name": "Apple",
+        "ord_gno_brno": "00001",
+        "odno": "12345"
+    }
+    
+    order.__pre_init__(data)
+    
+    # Should set country to US (market stays "KRX" as default for KisDomesticDailyOrder)
+    assert order.country == "US"
+
+
+def test_kis_domestic_daily_order_pre_init_with_cn_market():
+    """Test KisDomesticDailyOrder.__pre_init__ with Chinese market."""
+    order = object.__new__(dord.KisDomesticDailyOrder)
+    
+    data = {
+        "ord_dt": "20240101",
+        "ord_tmd": "153000",
+        "excg_dvsn_cd": "52",  # SSE market
+        "pdno": "600000",
+        "sll_buy_dvsn_cd": "02",
+        "avg_prvs": "10.00",
+        "ord_unpr": "10.50",
+        "ord_qty": "100",
+        "tot_ccld_qty": "50",
+        "rmn_qty": "50",
+        "rjct_qty": "0",
+        "ccld_yn": "N",
+        "prdt_name": "SSE Stock",
+        "ord_gno_brno": "00001",
+        "odno": "12345"
+    }
+    
+    order.__pre_init__(data)
+    
+    # Should set country to CN and market to SSE
+    assert order.country == "CN"
+    assert order.market == "SSE"
+    # Should update timezone to SSE timezone
+    from pykis.api.stock.market import get_market_timezone
+    assert order.timezone == get_market_timezone("SSE")
+
+
+def test_kis_domestic_daily_order_pre_init_with_condition():
+    """Test KisDomesticDailyOrder.__pre_init__ with order condition."""
+    order = object.__new__(dord.KisDomesticDailyOrder)
+    
+    data = {
+        "ord_dt": "20240101",
+        "ord_tmd": "093000",
+        "excg_dvsn_cd": "61",  # before market condition
+        "pdno": "005930",
+        "sll_buy_dvsn_cd": "02",
+        "avg_prvs": "50000",
+        "ord_unpr": "50000",
+        "ord_qty": "10",
+        "tot_ccld_qty": "5",
+        "rmn_qty": "5",
+        "rjct_qty": "0",
+        "ccld_yn": "N",
+        "prdt_name": "Samsung",
+        "ord_gno_brno": "00001",
+        "odno": "12345"
+    }
+    
+    order.__pre_init__(data)
+    
+    # Should set condition to "before"
+    assert order.condition == "before"
+
+
+def test_kis_domestic_daily_order_post_init():
+    """Test KisDomesticDailyOrder.__post_init__ converts timezone."""
+    from pykis.utils.timezone import TIMEZONE
+    from zoneinfo import ZoneInfo
+    
+    order = object.__new__(dord.KisDomesticDailyOrder)
+    order.time_kst = datetime.now(TIMEZONE)
+    order.timezone = ZoneInfo("Asia/Shanghai")
+    
+    order.__post_init__()
+    
+    # Should have converted time to local timezone
+    assert order.time.tzinfo == order.timezone
+
+
+def test_kis_domestic_daily_orders_post_init():
+    """Test KisDomesticDailyOrders.__post_init__ sets account_number on orders."""
+    from pykis.client.account import KisAccountNumber
+    
+    account = KisAccountNumber("12345678-01")
+    
+    orders_instance = object.__new__(dord.KisDomesticDailyOrders)
+    orders_instance.account_number = account
+    
+    # Create mock orders that behave like KisDailyOrderBase
+    order1 = object.__new__(dord.KisDailyOrderBase)
+    order2 = object.__new__(dord.KisDailyOrderBase)
+    orders_instance.orders = [order1, order2]
+    
+    orders_instance.__post_init__()
+    
+    # Should have set account_number on all orders
+    assert order1.account_number == account
+    assert order2.account_number == account
+
+
+def test_kis_domestic_daily_orders_kis_post_init(monkeypatch):
+    """Test KisDomesticDailyOrders.__kis_post_init__ spreads kis."""
+    from pykis.client.account import KisAccountNumber
+    
+    account = KisAccountNumber("12345678-01")
+    
+    orders_instance = object.__new__(dord.KisDomesticDailyOrders)
+    orders_instance.account_number = account
+    orders_instance.orders = [SimpleNamespace(), SimpleNamespace()]
+    
+    # Mock super().__kis_post_init__ and _kis_spread
+    monkeypatch.setattr(dord.KisPaginationAPIResponse, "__kis_post_init__", lambda self: None)
+    
+    spread_called = []
+    orders_instance._kis_spread = lambda orders: spread_called.append(orders)
+    
+    orders_instance.__kis_post_init__()
+    
+    # Should have called _kis_spread with orders
+    assert len(spread_called) == 1
+
+
+def test_kis_foreign_daily_order_post_init():
+    """Test KisForeignDailyOrder.__post_init__ converts timezone."""
+    from pykis.utils.timezone import TIMEZONE
+    from pykis.api.stock.market import get_market_timezone
+    
+    order = object.__new__(dord.KisForeignDailyOrder)
+    order.time_kst = datetime.now(TIMEZONE)
+    order.timezone = get_market_timezone("NASDAQ")
+    
+    order.__post_init__()
+    
+    # Should have converted time to NASDAQ timezone
+    assert order.time.tzinfo == order.timezone
+
+
+def test_kis_foreign_daily_orders_post_init():
+    """Test KisForeignDailyOrders.__post_init__ sets account_number on orders."""
+    from pykis.client.account import KisAccountNumber
+    
+    account = KisAccountNumber("12345678-01")
+    
+    orders_instance = object.__new__(dord.KisForeignDailyOrders)
+    orders_instance.account_number = account
+    
+    # Create mock orders that behave like KisDailyOrderBase
+    order1 = object.__new__(dord.KisDailyOrderBase)
+    order2 = object.__new__(dord.KisDailyOrderBase)
+    orders_instance.orders = [order1, order2]
+    
+    orders_instance.__post_init__()
+    
+    # Should have set account_number on all orders
+    assert order1.account_number == account
+    assert order2.account_number == account
+
+
+def test_kis_foreign_daily_orders_kis_post_init(monkeypatch):
+    """Test KisForeignDailyOrders.__kis_post_init__ spreads kis."""
+    from pykis.client.account import KisAccountNumber
+    
+    account = KisAccountNumber("12345678-01")
+    
+    orders_instance = object.__new__(dord.KisForeignDailyOrders)
+    orders_instance.account_number = account
+    orders_instance.orders = [SimpleNamespace(), SimpleNamespace()]
+    
+    # Mock super().__kis_post_init__ and _kis_spread
+    monkeypatch.setattr(dord.KisPaginationAPIResponse, "__kis_post_init__", lambda self: None)
+    
+    spread_called = []
+    orders_instance._kis_spread = lambda orders: spread_called.append(orders)
+    
+    orders_instance.__kis_post_init__()
+    
+    # Should have called _kis_spread with orders
+    assert len(spread_called) == 1
+
+
+def test_domestic_daily_orders_api_codes():
+    """Test DOMESTIC_DAILY_ORDERS_API_CODES mappings."""
+    # Real mode, recent (within 3 months)
+    assert (True, True) in dord.DOMESTIC_DAILY_ORDERS_API_CODES
+    assert dord.DOMESTIC_DAILY_ORDERS_API_CODES[(True, True)] == "TTTC8001R"
+    
+    # Real mode, old (more than 3 months)
+    assert (True, False) in dord.DOMESTIC_DAILY_ORDERS_API_CODES
+    assert dord.DOMESTIC_DAILY_ORDERS_API_CODES[(True, False)] == "CTSC9115R"
+    
+    # Virtual mode, recent
+    assert (False, True) in dord.DOMESTIC_DAILY_ORDERS_API_CODES
+    assert dord.DOMESTIC_DAILY_ORDERS_API_CODES[(False, True)] == "VTTC8001R"
+    
+    # Virtual mode, old
+    assert (False, False) in dord.DOMESTIC_DAILY_ORDERS_API_CODES
+    assert dord.DOMESTIC_DAILY_ORDERS_API_CODES[(False, False)] == "VTSC9115R"
+
+
+def test_foreign_country_market_map():
+    """Test FOREIGN_COUNTRY_MARKET_MAP contains expected mappings."""
+    assert None in dord.FOREIGN_COUNTRY_MARKET_MAP
+    assert "US" in dord.FOREIGN_COUNTRY_MARKET_MAP
+    assert "HK" in dord.FOREIGN_COUNTRY_MARKET_MAP
+    assert "CN" in dord.FOREIGN_COUNTRY_MARKET_MAP
+    assert "JP" in dord.FOREIGN_COUNTRY_MARKET_MAP
+    assert "VN" in dord.FOREIGN_COUNTRY_MARKET_MAP
+    
+    # US maps to NASDAQ
+    assert dord.FOREIGN_COUNTRY_MARKET_MAP["US"] == ["NASDAQ"]
+    
+    # CN maps to both SSE and SZSE
+    assert "SSE" in dord.FOREIGN_COUNTRY_MARKET_MAP["CN"]
+    assert "SZSE" in dord.FOREIGN_COUNTRY_MARKET_MAP["CN"]
+    
+    # VN maps to both HSX and HNX
+    assert "HSX" in dord.FOREIGN_COUNTRY_MARKET_MAP["VN"]
+    assert "HNX" in dord.FOREIGN_COUNTRY_MARKET_MAP["VN"]
+
+
+def test_kis_integration_daily_orders_initialization():
+    """Test KisIntegrationDailyOrders initialization and sorting."""
+    from pykis.client.account import KisAccountNumber
+    
+    mock_kis = SimpleNamespace()
+    account = KisAccountNumber("12345678-01")
+    
+    # Create mock daily orders
+    order1 = SimpleNamespace(time_kst=datetime(2021, 1, 1))
+    order2 = SimpleNamespace(time_kst=datetime(2021, 1, 3))
+    order3 = SimpleNamespace(time_kst=datetime(2021, 1, 2))
+    
+    orders1 = SimpleNamespace(orders=[order1])
+    orders2 = SimpleNamespace(orders=[order2, order3])
+    
+    # Create integration orders
+    integ = dord.KisIntegrationDailyOrders(mock_kis, account, orders1, orders2)
+    
+    # Should merge all orders and sort by time_kst descending
+    assert len(integ.orders) == 3
+    assert integ.orders[0].time_kst == datetime(2021, 1, 3)
+    assert integ.orders[1].time_kst == datetime(2021, 1, 2)
+    assert integ.orders[2].time_kst == datetime(2021, 1, 1)
