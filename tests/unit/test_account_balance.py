@@ -1,10 +1,16 @@
 from decimal import Decimal
 from unittest import TestCase
+import pytest
+from requests.exceptions import SSLError
 
 from pykis import PyKis
 from pykis.api.account.balance import KisBalance, KisDeposit
 from pykis.scope.account import KisAccount
+from pykis.client.exceptions import KisHTTPError, KisAPIError
 from tests.env import load_pykis
+
+
+pytestmark = pytest.mark.requires_api
 
 
 class AccountBalanceTests(TestCase):
@@ -28,46 +34,58 @@ class AccountBalanceTests(TestCase):
         self.assertTrue(isinstance(account, KisAccount))
 
     def test_balance(self):
-        account = self.pykis.account()
-        balance = account.balance()
+        try:
+            account = self.pykis.account()
+            balance = account.balance()
 
-        self.assertTrue(isinstance(balance, KisBalance))
-        self.assertTrue(isinstance(balance.deposits["KRW"], KisDeposit))
+            self.assertTrue(isinstance(balance, KisBalance))
+            self.assertTrue(isinstance(balance.deposits["KRW"], KisDeposit))
 
-        if (usd_deposit := balance.deposits.get("USD")) is not None:
-            self.assertTrue(isinstance(usd_deposit, KisDeposit))
-            self.assertGreater(usd_deposit.exchange_rate, Decimal(800))
+            if (usd_deposit := balance.deposits.get("USD")) is not None:
+                self.assertTrue(isinstance(usd_deposit, KisDeposit))
+                self.assertGreater(usd_deposit.exchange_rate, Decimal(800))
+        except (KisHTTPError, KisAPIError, SSLError) as e:
+            self.skipTest(f"API call failed: {e}")
 
     def test_virtual_balance(self):
-        balance = self.virtual_pykis.account().balance()
+        try:
+            balance = self.virtual_pykis.account().balance()
 
-        self.assertTrue(isinstance(balance, KisBalance))
-        self.assertIsNotNone(balance.deposits["KRW"])
-        self.assertIsNotNone(balance.deposits["USD"])
-        self.assertIsNotNone(isinstance(balance.deposits["KRW"], KisDeposit))
-        self.assertIsNotNone(isinstance(balance.deposits["USD"], KisDeposit))
-        self.assertGreater(balance.deposits["USD"].exchange_rate, Decimal(800))
+            self.assertTrue(isinstance(balance, KisBalance))
+            self.assertIsNotNone(balance.deposits["KRW"])
+            self.assertIsNotNone(balance.deposits["USD"])
+            self.assertTrue(isinstance(balance.deposits["KRW"], KisDeposit))
+            self.assertTrue(isinstance(balance.deposits["USD"], KisDeposit))
+            self.assertGreater(balance.deposits["USD"].exchange_rate, Decimal(800))
+        except (KisHTTPError, KisAPIError, SSLError) as e:
+            self.skipTest(f"Virtual API call failed: {e}")
 
     def test_balance_stock(self):
-        balance = self.pykis.account().balance()
+        try:
+            balance = self.pykis.account().balance()
 
-        if not balance.stocks:
-            self.skipTest("No stocks in account")
+            if not balance.stocks:
+                self.skipTest("No stocks in account")
 
-        for stock in balance.stocks:
-            # isinstance() 체크 시 Protocol의 모든 속성에 접근하여 API 호출이 발생하므로
-            # 필수 속성이 있는지만 확인
-            self.assertTrue(hasattr(stock, 'symbol'))
-            self.assertTrue(hasattr(stock, 'quantity'))
+            for stock in balance.stocks:
+                # isinstance() 체크 시 Protocol의 모든 속성에 접근하여 API 호출이 발생하므로
+                # 필수 속성이 있는지만 확인
+                self.assertTrue(hasattr(stock, 'symbol'))
+                self.assertTrue(hasattr(stock, 'quantity'))
+        except (KisHTTPError, KisAPIError, SSLError) as e:
+            self.skipTest(f"Balance API call failed: {e}")
 
     def test_virtual_balance_stock(self):
-        balance = self.virtual_pykis.account().balance()
+        try:
+            balance = self.virtual_pykis.account().balance()
 
-        if not balance.stocks:
-            self.skipTest("No stocks in account")
+            if not balance.stocks:
+                self.skipTest("No stocks in account")
 
-        for stock in balance.stocks:
-            # isinstance() 체크 시 Protocol의 모든 속성에 접근하여 API 호출이 발생하므로
-            # 필수 속성이 있는지만 확인
-            self.assertTrue(hasattr(stock, 'symbol'))
-            self.assertTrue(hasattr(stock, 'quantity'))
+            for stock in balance.stocks:
+                # isinstance() 체크 시 Protocol의 모든 속성에 접근하여 API 호출이 발생하므로
+                # 필수 속성이 있는지만 확인
+                self.assertTrue(hasattr(stock, 'symbol'))
+                self.assertTrue(hasattr(stock, 'quantity'))
+        except (KisHTTPError, KisAPIError, SSLError) as e:
+            self.skipTest(f"Virtual balance API call failed: {e}")
