@@ -35,5 +35,5 @@ virtual_secret.json
 .python-version
 .coverage
 htmlcov/
-reports/
+/reports/
 poetry.toml
