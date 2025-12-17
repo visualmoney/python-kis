@@ -7,7 +7,34 @@ Tests coverage for:
 - quotable_market function
 - info function
 - resolve_market function
-"""
+=== CRITICAL TEST DESIGN NOTES ===
+
+MARKET_TYPE_MAP Structure (defined in pykis/api/stock/info.py:26-50):
+- Maps market names to lists of market codes
+- KR: ["300"] - Single code (domestic only, no retry capability)
+- US: ["512", "513", "529"] - Three codes (NASDAQ, NYSE, AMEX; enables retry testing)
+- Other markets: Various code counts depending on market availability
+
+Error Handling & Market Code Iteration:
+- Both quotable_market() and info() functions iterate through market codes
+- When a market code returns rt_cd=7 (no data), function automatically retries with next code
+- When a market code returns other rt_cd values (error), function raises immediately
+- Function exhausts all market codes, then raises KisNotFoundError if none succeed
+
+Test Design Implications:
+- Tests using market="US" intentionally exploit multiple codes to test retry logic
+- Tests using market="KR" cannot test retry scenarios (only one code available)
+- test_continues_on_rt_cd_7_error must use market="US" to verify:
+  * First market code (512) fails with rt_cd=7
+  * Function automatically retries with second code (513)
+  * Second call succeeds with mock_info response
+  * Without multiple codes, no retry is possible after first error
+
+Cannot substitute KR for US:
+- KR has only ["300"], so after first error, no remaining codes to retry
+- Function would raise KisNotFoundError instead of retrying
+- Test assertion (fake_kis.fetch.call_count == 2) would fail
+- This is intentional design, not arbitrary choice"""
 
 from datetime import timedelta
 from unittest.mock import Mock, MagicMock, patch
@@ -163,10 +190,28 @@ class TestQuotableMarket:
         assert result == "KRX"
         fake_kis.fetch.assert_called_once()
 
-    @pytest.mark.skip(reason="raise_not_found는 __data__ 속성을 필요로 하므로 실제 API 응답 구조 필요")
     def test_domestic_market_with_zero_price_continues(self):
-        """Test domestic market with zero price tries next market. (SKIPPED)""" 
-        pass
+        """Test domestic market with zero price tries next market."""
+        from unittest.mock import Mock
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # First call returns zero price (should continue)
+        mock_response_zero = Mock()
+        mock_response_zero.output.stck_prpr = "0"
+        mock_response_zero.__data__ = {"output": {"stck_prpr": "0"}, "__response__": Mock()}
+        
+        # Second call would succeed (but we're only testing the continue logic)
+        mock_response_valid = Mock()
+        mock_response_valid.output.last = "150.50"
+        
+        fake_kis.fetch.side_effect = [mock_response_zero, mock_response_valid]
+        
+        # Should skip the zero price and try next market
+        result = quotable_market(fake_kis, "005930", market=None, use_cache=False)
+        
+        # fetch should be called twice
+        assert fake_kis.fetch.call_count == 2
 
     def test_foreign_market_with_valid_price(self):
         """Test foreign market returns correct market type."""
@@ -181,26 +226,101 @@ class TestQuotableMarket:
         
         assert result == "NASDAQ"
 
-    @pytest.mark.skip(reason="raise_not_found는 __data__ 속성을 필요로 하므로 실제 API 응답 구조 필요")
     def test_foreign_market_with_empty_price_continues(self):
-        """Test foreign market with empty price tries next market. (SKIPPED)"""
-        pass
+        """Test foreign market with empty price tries next market."""
+        from unittest.mock import Mock
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # First call returns empty/zero price (should continue)
+        mock_response_empty = Mock()
+        mock_response_empty.output.last = ""
+        mock_response_empty.__data__ = {"output": {"last": ""}, "__response__": Mock()}
+        
+        # Second call would succeed
+        mock_response_valid = Mock()
+        mock_response_valid.output.last = "150.50"
+        
+        fake_kis.fetch.side_effect = [mock_response_empty, mock_response_valid]
+        
+        # Should skip the empty price and try next market type
+        result = quotable_market(fake_kis, "AAPL", market="US", use_cache=False)
+        
+        # fetch should be called twice (once for each US market code)
+        assert fake_kis.fetch.call_count == 2
 
-    @pytest.mark.skip(reason="raise_not_found는 __response__ 필드를 필요로 하므로 실제 API 응답 구조 필요")
     def test_attribute_error_continues(self):
-        """Test AttributeError in response is caught and continues. (SKIPPED)"""
-        pass
+        """Test AttributeError in response is caught and continues."""
+        from unittest.mock import Mock
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # First call raises AttributeError (missing output attribute)
+        mock_response_error = Mock()
+        del mock_response_error.output  # Force AttributeError
+        mock_response_error.__data__ = {"__response__": Mock()}
+        
+        # Second call succeeds
+        mock_response_valid = Mock()
+        mock_response_valid.output.stck_prpr = "65000"
+        
+        fake_kis.fetch.side_effect = [mock_response_error, mock_response_valid]
+        
+        # Should catch AttributeError and continue to next market (use None to iterate multiple markets)
+        result = quotable_market(fake_kis, "005930", market=None, use_cache=False)
+        
+        assert result == "NASDAQ"  # Second market code in the list
+        assert fake_kis.fetch.call_count == 2
 
-    @pytest.mark.skip(reason="raise_not_found는 __response__ 필드를 필요로 하므로 실제 API 응답 구조 필요")
     def test_raises_not_found_when_no_markets_match(self):
-        """Test raises KisNotFoundError when no markets match. (SKIPPED)"""
-        pass
+        """Test raises KisNotFoundError when no markets match."""
+        from unittest.mock import Mock
+        from requests import Response
+        
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # All calls return zero/empty price
+        mock_response = Mock()
+        mock_response.output.stck_prpr = "0"
+        mock_response.output.last = ""
+        
+        # Create proper response with __data__ and __response__
+        mock_http_response = Mock(spec=Response)
+        mock_http_response.status_code = 200
+        mock_http_response.text = ""
+        mock_response.__data__ = {"output": {"stck_prpr": "0"}, "__response__": mock_http_response}
+        
+        fake_kis.fetch.return_value = mock_response
+        
+        # Should raise KisNotFoundError when all markets fail
+        with pytest.raises(KisNotFoundError) as exc_info:
+            quotable_market(fake_kis, "INVALID", market="KR", use_cache=False)
+        
+        assert "해당 종목의 정보를 조회할 수 없습니다" in str(exc_info.value)
 
 
 # ===== Tests for info function =====
 
 class TestInfo:
-    """Tests for info function."""
+    """Tests for info function.
+    
+    Key Testing Scenario:
+    The info() function iterates through market codes based on MARKET_TYPE_MAP:
+    - For market="KR": Tries code "300" only
+    - For market="US": Tries codes ["512", "513", "529"] in sequence
+    - For market=None: Tries all available codes
+    
+    Error Handling During Iteration:
+    - rt_cd=7 (no data): Continue to next market code
+    - Other rt_cd values: Raise immediately without retry
+    - All market codes exhausted: Raise KisNotFoundError
+    
+    Test Design:
+    - Retry tests require market with multiple codes (US, not KR)
+    - Single code markets (KR) cannot test retry scenarios
+    - Multiple market code iteration requires multi-call mocking
+    """
 
     def test_validates_empty_symbol(self):
         """Test empty symbol raises ValueError."""
@@ -293,20 +413,153 @@ class TestInfo:
         
         fake_kis.cache.set.assert_not_called()
 
-    @pytest.mark.skip(reason="KisAPIError 생성자 시그니처가 복잡하여 모킹 어려움. 통합 테스트에서 커버")
     def test_continues_on_rt_cd_7_error(self):
-        """Test continues to next market when rt_cd=7 (no data). (SKIPPED)"""
-        pass
+        """Test continues to next market when rt_cd=7 (no data).
+        
+        CRITICAL: This test MUST use market="US" because:
+        - MARKET_TYPE_MAP["US"] = ["512", "513", "529"] (3 market codes)
+        - MARKET_TYPE_MAP["KR"] = ["300"] (1 market code only)
+        
+        Test Scenario:
+        1. First fetch() call uses market code "512" (NASDAQ), returns rt_cd=7 error
+        2. Function detects rt_cd=7 and continues to next market code
+        3. Second fetch() call uses market code "513" (NYSE), succeeds
+        4. Result: fetch.call_count == 2 (one per market code)
+        
+        Why Not KR?
+        - After first error on code "300", no remaining codes exist
+        - Function would raise KisNotFoundError, not retry
+        - fetch.call_count would be 1, test assertion would fail
+        - Cannot demonstrate retry logic with single-code markets
+        
+        Design Rationale:
+        The US market with 3 codes enables testing the actual retry mechanism
+        that info() implements for multiple market availability.
+        """
+        from unittest.mock import Mock
+        from requests import Response
+        
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # First call raises KisAPIError with rt_cd=7 (no data)
+        # This triggers iteration to next market code
+        mock_http_response = Mock(spec=Response)
+        mock_http_response.status_code = 200
+        mock_http_response.text = ""
+        mock_http_response.headers = {"tr_id": "TEST_TR_ID", "gt_uid": "TEST_GT_UID"}
+        mock_http_response.request = Mock()
+        mock_http_response.request.method = "GET"
+        mock_http_response.request.headers = {}
+        mock_http_response.request.url = "http://test.com/api"
+        mock_http_response.request.body = None
+        api_error = KisAPIError(
+            data={"rt_cd": "7", "msg1": "조회된 데이터가 없습니다", "__response__": mock_http_response},
+            response=mock_http_response
+        )
+        api_error.rt_cd = 7
+        
+        # Second call succeeds on next market code
+        mock_info = Mock()
+        
+        fake_kis.fetch.side_effect = [api_error, mock_info]
+        
+        # IMPORTANT: market="US" has multiple codes enabling retry logic validation
+        # First call: code 512 fails with rt_cd=7
+        # Second call: code 513 succeeds
+        with patch('pykis.api.stock.info.quotable_market', return_value="US"):
+            result = info(fake_kis, "AAPL", market="US", use_cache=False, quotable=True)
+        
+        assert result == mock_info
+        # Verify both market codes were attempted (retry occurred)
+        assert fake_kis.fetch.call_count == 2
 
-    @pytest.mark.skip(reason="KisAPIError 생성자 시그니처가 복잡하여 모킹 어려움. 통합 테스트에서 커버")
     def test_raises_other_api_errors_immediately(self):
-        """Test raises non-rt_cd=7 API errors immediately. (SKIPPED)"""
-        pass
+        """Test raises non-rt_cd=7 API errors immediately."""
+        from unittest.mock import Mock
+        from requests import Response
+        
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # Create KisAPIError with rt_cd != 7 (should raise immediately)
+        mock_http_response = Mock(spec=Response)
+        mock_http_response.status_code = 401
+        mock_http_response.text = ""
+        mock_http_response.headers = {"tr_id": "TEST_TR_ID", "gt_uid": "TEST_GT_UID"}
+        mock_http_response.request = Mock()
+        mock_http_response.request.method = "GET"
+        mock_http_response.request.headers = {}
+        mock_http_response.request.url = "http://test.com/api"
+        mock_http_response.request.body = None
+        api_error = KisAPIError(
+            data={"rt_cd": "1", "msg1": "인증 실패", "__response__": mock_http_response},
+            response=mock_http_response
+        )
+        api_error.rt_cd = 1
+        
+        fake_kis.fetch.side_effect = api_error
+        
+        # Should raise the error immediately without trying next market
+        with pytest.raises(KisAPIError) as exc_info:
+            with patch('pykis.api.stock.info.quotable_market', return_value="KR"):
+                info(fake_kis, "005930", market="KR", use_cache=False, quotable=True)
+        
+        assert exc_info.value.rt_cd == 1
+        # Should only call fetch once before raising
+        assert fake_kis.fetch.call_count == 1
 
-    @pytest.mark.skip(reason="KisAPIError와 raise_not_found의 복잡한 상호작용으로 모킹 어려움")
     def test_raises_not_found_when_all_markets_fail(self):
-        """Test raises KisNotFoundError when all markets return rt_cd=7. (SKIPPED)"""
-        pass
+        """Test raises KisNotFoundError when all markets return rt_cd=7.
+        
+        Market Code Exhaustion Scenario for KR Market:
+        - MARKET_TYPE_MAP["KR"] = ["300"] (single code)
+        
+        Test Scenario:
+        1. fetch() call uses code "300", returns rt_cd=7
+        2. Function checks for remaining market codes
+        3. No more codes available in MARKET_TYPE_MAP["KR"]
+        4. Function raises KisNotFoundError (all markets exhausted)
+        
+        Design Note:
+        This test correctly uses market="KR" because we want to verify
+        the exhaustion behavior. With single code, exhaustion occurs naturally
+        after first error. The function's raise_not_found() is triggered
+        when all available market codes have been attempted.
+        """
+        from unittest.mock import Mock
+        from requests import Response
+        
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # All calls raise KisAPIError with rt_cd=7
+        # Simulates symbol not available on any market code
+        mock_http_response = Mock(spec=Response)
+        mock_http_response.status_code = 200
+        mock_http_response.text = ""
+        mock_http_response.headers = {"tr_id": "TEST_TR_ID", "gt_uid": "TEST_GT_UID"}
+        mock_http_response.request = Mock()
+        mock_http_response.request.method = "GET"
+        mock_http_response.request.headers = {}
+        mock_http_response.request.url = "http://test.com/api"
+        mock_http_response.request.body = None
+        api_error = KisAPIError(
+            data={"rt_cd": "7", "msg1": "조회된 데이터가 없습니다", "__response__": mock_http_response},
+            response=mock_http_response
+        )
+        api_error.rt_cd = 7
+        api_error.data = {"rt_cd": "7", "msg1": "조회된 데이터가 없습니다", "__response__": mock_http_response}
+        
+        fake_kis.fetch.side_effect = api_error
+        
+        # Should raise KisNotFoundError after all markets fail with rt_cd=7
+        # KR has only one code, so exhaustion occurs naturally
+        with pytest.raises(KisNotFoundError) as exc_info:
+            with patch('pykis.api.stock.info.quotable_market', return_value="KR"):
+                info(fake_kis, "INVALID", market="KR", use_cache=False, quotable=True)
+        
+        assert "해당 종목의 정보를 조회할 수 없습니다" in str(exc_info.value)
 
     def test_fetch_params_correct(self):
         """Test fetch is called with correct parameters."""
@@ -326,10 +579,62 @@ class TestInfo:
         assert call_args[1]["domain"] == "real"
         assert call_args[1]["response_type"] == _KisStockInfo
 
-    @pytest.mark.skip(reason="KisAPIError 생성자 시그니처가 복잡하여 모킹 어려움. 통합 테스트에서 커버")
     def test_multiple_markets_iteration(self):
-        """Test iterates through all market codes. (SKIPPED)"""
-        pass
+        """Test iterates through all market codes.
+        
+        Market Code Iteration Sequence for US Market:
+        - MARKET_TYPE_MAP["US"] = ["512", "513", "529"] (NASDAQ, NYSE, AMEX)
+        
+        Test Scenario:
+        1. First fetch() call uses code "512" (NASDAQ), returns rt_cd=7
+        2. Function continues to next market code
+        3. Second fetch() call uses code "513" (NYSE), returns rt_cd=7
+        4. Function continues to next market code
+        5. Third fetch() call uses code "529" (AMEX), succeeds
+        6. Result: fetch.call_count == 3 (exhausted 2 codes, succeeded on 3rd)
+        
+        This validates:
+        - Function maintains iteration state across market codes
+        - Each rt_cd=7 triggers progression to next code
+        - Success on any code stops iteration
+        - All available codes are attempted in sequence
+        """
+        from unittest.mock import Mock
+        from requests import Response
+        
+        fake_kis = Mock()
+        fake_kis.cache.get.return_value = None
+        
+        # First two calls fail with rt_cd=7, third succeeds
+        # Simulates trying multiple market codes until one has data
+        mock_http_response = Mock(spec=Response)
+        mock_http_response.status_code = 200
+        mock_http_response.text = ""
+        mock_http_response.headers = {"tr_id": "TEST_TR_ID", "gt_uid": "TEST_GT_UID"}
+        mock_http_response.request = Mock()
+        mock_http_response.request.method = "GET"
+        mock_http_response.request.headers = {}
+        mock_http_response.request.url = "http://test.com/api"
+        mock_http_response.request.body = None
+        api_error = KisAPIError(
+            data={"rt_cd": "7", "msg1": "조회된 데이터가 없습니다", "__response__": mock_http_response},
+            response=mock_http_response
+        )
+        api_error.rt_cd = 7
+        api_error.data = {"rt_cd": "7", "msg1": "조회된 데이터가 없습니다", "__response__": mock_http_response}
+        
+        mock_info = Mock()
+        
+        # Mock 3 calls: Code 512 fails, Code 513 fails, Code 529 succeeds
+        fake_kis.fetch.side_effect = [api_error, api_error, mock_info]
+        
+        # Should iterate through market codes until one succeeds
+        with patch('pykis.api.stock.info.quotable_market', return_value="US"):
+            result = info(fake_kis, "AAPL", market="US", use_cache=False, quotable=True)
+        
+        assert result == mock_info
+        # Verify all 3 market codes were attempted (512→513→529)
+        assert fake_kis.fetch.call_count == 3
 
 
 # ===== Tests for resolve_market function =====

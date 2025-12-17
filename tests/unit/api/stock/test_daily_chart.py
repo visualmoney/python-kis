@@ -751,20 +751,107 @@ class TestDomesticDayChartLoopTermination:
 class TestKisDomesticDailyChartBar:
     """Tests for KisDomesticDailyChartBar (daily_chart.py에서 import)."""
 
-    @pytest.mark.skip(reason="KisDynamic 클래스는 일반적인 인스턴스화가 불가능. 통합 테스트에서 충분히 커버됨")
     def test_properties_integration(self):
-        """Test all properties work correctly. (SKIPPED: Covered by integration tests)"""
-        pass
+        """Test all properties work correctly via KisObject.transform_."""
+        from pykis.api.stock.daily_chart import KisDomesticDailyChartBar
+        from pykis.responses.dynamic import KisObject
+        
+        # Create mock API response data
+        bar_data = {
+            "stck_bsop_date": "20231201",
+            "stck_oprc": "65000",
+            "stck_clpr": "66500",
+            "stck_hgpr": "67000",
+            "stck_lwpr": "64500",
+            "acml_vol": "1000000",
+            "acml_tr_pbmn": "65500000000",
+            "prdy_vrss": "1500",
+            "prdy_vrss_sign": "2",  # Rise
+            "flng_cls_code": "00",
+            "prtt_rate": "0",
+        }
+        
+        bar = KisObject.transform_(bar_data, KisDomesticDailyChartBar)
+        
+        # Test properties
+        assert bar.price == Decimal("66500")
+        assert bar.prev_price == Decimal("65000")
+        assert bar.change == Decimal("1500")
+        assert bar.rate == Decimal("2.307692307692307692307692308")  # (1500/65000)*100
+        assert bar.sign == "rise"
+        assert bar.sign_name in ["상승", "상한", "상한가"]
+        assert bar.ex_date_type.name == "NONE"
 
-    @pytest.mark.skip(reason="KisDynamic 클래스는 일반적인 인스턴스화가 불가능. 통합 테스트에서 충분히 커버됨")
     def test_ex_date_type_mapping(self):
-        """Test ExDateType mapping from code. (SKIPPED: Covered by integration tests)"""
-        pass
+        """Test ExDateType mapping from code."""
+        from pykis.api.stock.daily_chart import KisDomesticDailyChartBar
+        from pykis.responses.dynamic import KisObject
+        from pykis.api.stock.market import ExDateType
+        
+        # Test rights ex-date (code "01" = EX_RIGHTS)
+        bar_data_rights = {
+            "stck_bsop_date": "20231201",
+            "stck_oprc": "65000",
+            "stck_clpr": "66500",
+            "stck_hgpr": "67000",
+            "stck_lwpr": "64500",
+            "acml_vol": "1000000",
+            "acml_tr_pbmn": "65500000000",
+            "prdy_vrss": "1500",
+            "prdy_vrss_sign": "2",
+            "flng_cls_code": "01",  # EX_RIGHTS
+            "prtt_rate": "0",
+        }
+        
+        bar = KisObject.transform_(bar_data_rights, KisDomesticDailyChartBar)
+        assert bar.ex_date_type == ExDateType.EX_RIGHTS
+        
+        # Test dividend ex-date (code "02" = EX_DIVIDEND)
+        bar_data_dividend = bar_data_rights.copy()
+        bar_data_dividend["flng_cls_code"] = "02"
+        bar_dividend = KisObject.transform_(bar_data_dividend, KisDomesticDailyChartBar)
+        assert bar_dividend.ex_date_type == ExDateType.EX_DIVIDEND
 
-    @pytest.mark.skip(reason="KisDynamic 클래스는 일반적인 인스턴스화가 불가능. 통합 테스트에서 충분히 커버됨")
     def test_sign_mapping(self):
-        """Test sign type mapping. (SKIPPED: Covered by integration tests)"""
-        pass
+        """Test sign type mapping."""
+        from pykis.api.stock.daily_chart import KisDomesticDailyChartBar
+        from pykis.responses.dynamic import KisObject
+        
+        base_data = {
+            "stck_bsop_date": "20231201",
+            "stck_oprc": "65000",
+            "stck_clpr": "66500",
+            "stck_hgpr": "67000",
+            "stck_lwpr": "64500",
+            "acml_vol": "1000000",
+            "acml_tr_pbmn": "65500000000",
+            "prdy_vrss": "1500",
+            "flng_cls_code": "00",
+            "prtt_rate": "0",
+        }
+        
+        # Test rise (2)
+        bar_data_rise = base_data.copy()
+        bar_data_rise["prdy_vrss_sign"] = "2"
+        bar_rise = KisObject.transform_(bar_data_rise, KisDomesticDailyChartBar)
+        assert bar_rise.sign == "rise"
+        assert bar_rise.sign_name in ["상승", "상한", "상한가"]
+        
+        # Test decline (5)
+        bar_data_decline = base_data.copy()
+        bar_data_decline["prdy_vrss_sign"] = "5"
+        bar_data_decline["prdy_vrss"] = "-1500"
+        bar_decline = KisObject.transform_(bar_data_decline, KisDomesticDailyChartBar)
+        assert bar_decline.sign == "decline"
+        assert bar_decline.sign_name in ["하락", "하한", "하한가"]
+        
+        # Test steady (3)
+        bar_data_steady = base_data.copy()
+        bar_data_steady["prdy_vrss_sign"] = "3"
+        bar_data_steady["prdy_vrss"] = "0"
+        bar_steady = KisObject.transform_(bar_data_steady, KisDomesticDailyChartBar)
+        assert bar_steady.sign == "steady"
+        assert bar_steady.sign_name == "보합"
 
 
 class TestKisDomesticDailyChart:
@@ -818,10 +905,40 @@ class TestKisDomesticDailyChart:
 class TestKisForeignDailyChartBar:
     """Tests for KisForeignDailyChartBar."""
 
-    @pytest.mark.skip(reason="KisDynamic 클래스는 일반적인 인스턴스화가 불가능. 통합 테스트에서 커버됨")
     def test_properties_integration(self):
-        """Test all properties work correctly. (SKIPPED: Covered by integration tests)"""
-        pass
+        """Test all properties work correctly via KisObject.transform_."""
+        from pykis.api.stock.daily_chart import KisForeignDailyChartBar
+        from pykis.responses.dynamic import KisObject
+        
+        # Create mock API response data
+        bar_data = {
+            "xymd": "20231201",
+            "open": "150.50",
+            "clos": "152.00",
+            "high": "153.00",
+            "low": "149.50",
+            "tvol": "5000000",
+            "tamt": "756000000",
+            "diff": "1.50",
+            "sign": "2",  # Rise
+        }
+        
+        bar = KisObject.transform_(bar_data, KisForeignDailyChartBar)
+        
+        # Test properties
+        assert bar.price == Decimal("152.00")
+        assert bar.prev_price == Decimal("150.50")
+        assert bar.change == Decimal("1.50")
+        assert bar.sign == "rise"
+        assert bar.sign_name in ["상승", "상한", "상한가"]
+        
+        # Test decline case
+        bar_data_decline = bar_data.copy()
+        bar_data_decline["sign"] = "5"
+        bar_data_decline["diff"] = "-1.50"
+        bar_decline = KisObject.transform_(bar_data_decline, KisForeignDailyChartBar)
+        assert bar_decline.sign == "decline"
+        assert bar_decline.prev_price == Decimal("153.50")
 
 
 class TestKisForeignDailyChart:

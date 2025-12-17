@@ -617,46 +617,125 @@ __all__ = [
 
 #### 이슈 #3: types.py 중복 정의
 
-**현황**:
-- `__init__.py`: 154개 export
-- `types.py`: 동일한 154개 재정의
+**현황**
+- `__init__.py`와 `types.py`가 동일한 154개 심벌을 중복 export → 공개 API 경로가 불명확하고 관리 비용이 2배 발생
+- 과거 문서(ARCHITECTURE_REPORT_KR v1.x)에서도 동일 문제가 지적됨
 
-**영향**:
-- 🔴 유지보수 이중 부담
-- 🔴 불일치 가능성
-- 🔴 혼란스러운 import 경로
+**영향**
+- 🔴 유지보수 이중 부담: 두 파일 동시 수정 필요 → 누락 시 하위 호환성 깨짐
+- 🔴 불일치 리스크: 한쪽만 갱신되면 import 경로마다 다른 시그니처/Docstring 노출 가능
+- 🔴 사용자 혼란: `from pykis import X` vs `from pykis.types import X` 어떤 것이 공식인지 불명확
 
-**해결 방안**:
+**개선 방안 (3단계, 하위 호환 유지)**
+
+1) 단기: public_types 분리 + Deprecation 경고
 ```python
-# 1. public_types.py 생성 (사용자용)
-# 2. types.py를 내부용으로 전환
-# 3. __init__.py에서 공개 API만 export
-# 4. Deprecation 경고로 전환 기간 제공
+# pykis/public_types.py (신규, 사용자용)
+__all__ = ["Quote", "Balance", "Order", "Chart", "Orderbook"]
+
+# pykis/types.py (기존, 내부/호환용)
+from .public_types import *  # 재export
+import warnings
+warnings.warn(
+    "pykis.types는 deprecated입니다. pykis.public_types 또는 pykis에서 직접 import하세요.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+# pykis/__init__.py (공개 API 20개 이하로 정리)
+from .public_types import *  # 사용자 노출 지점
+__all__ = ["PyKis", "KisAuth", "Quote", "Balance", "Order", "Chart", "Orderbook", "SimpleKIS", "create_client"]
 ```
 
-**예상 소요 시간**: 2일
+2) 중기: deprecated 경로 유지하되 자동 리다이렉트
+```python
+# pykis/types.py
+from .public_types import Quote, Balance, Order
+__all__ = ["Quote", "Balance", "Order"]
+```
+
+3) 장기: deprecated 경로 제거 (v3.0.0)
+```python
+# pykis/types.py
+raise ImportError("pykis.types는 제거되었습니다. pykis.public_types를 사용하세요.")
+```
+
+**테스트 샘플 (단위)**
+```python
+def test_public_imports():
+    from pykis import Quote, Balance, Order
+    assert Quote and Balance and Order
+
+def test_types_import_warns():
+    import warnings
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        from pykis import KisObjectProtocol  # deprecated
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+```
+
+**예상 소요 시간**: 2일 (코드/문서/테스트 포함)
 
 ### 6.2 중요 이슈 (High) 🟡
 
 #### 이슈 #4: 초보자 진입 장벽
 
-**현황**:
-- Protocol/Mixin 개념 이해 필요
-- 빠른 시작 가이드 없음
-- 예제 코드 부재
+**현황**
+- Protocol/Mixin 이해가 필요하고, 진입용 문서·예제가 부족(ARCHITECTURE_REPORT_KR v1.x에서도 동일 지적)
+- 설치→인증→첫 API 호출까지 “경험 경로”가 분산됨
 
-**영향**:
-- 🟡 초보자 이탈률 증가
-- 🟡 질문/문의 증가
-- 🟡 커뮤니티 성장 저해
+**영향**
+- 🟡 온보딩 실패로 문의/이탈 증가
+- 🟡 기본 기능을 시도하기 전에 학습 코스트 발생
 
-**해결 방안**:
-1. `QUICKSTART.md` 작성 (5분 시작 가능)
-2. `examples/` 폴더 생성 (10개 예제)
-3. `pykis/simple.py` Facade 구현
-4. `pykis/helpers.py` 헬퍼 함수
+**개선 방안 (UX 퍼널 단축)**
 
-**예상 소요 시간**: 1주
+1) QUICKSTART.md (5분 완주)
+```markdown
+1) 설치: pip install python-kis
+2) 인증: export KIS_APPKEY=...; export KIS_APPSECRET=...
+3) 첫 호출:
+   from pykis import PyKis
+   kis = PyKis()
+   print(kis.stock("005930").quote())
+```
+
+2) 초보자 Facade / Helpers
+```python
+# pykis/simple.py
+from . import PyKis
+
+def create_client(env: dict | None = None):
+    cfg = env or {
+        "appkey": os.getenv("KIS_APPKEY"),
+        "appsecret": os.getenv("KIS_APPSECRET"),
+    }
+    return PyKis(cfg)
+
+# 사용 예
+from pykis.simple import create_client
+kis = create_client()
+quote = kis.stock("005930").quote()
+```
+
+3) 예제 번들 (복사-붙여넣기 실행)
+- `examples/01_basic/hello_world.py`
+- `examples/01_basic/get_quote.py`
+- `examples/01_basic/get_balance.py`
+- `examples/01_basic/place_order.py`
+- `examples/01_basic/realtime_price.py` (WebSocket)
+
+4) Onboarding 테스트 (가이드 품질 보증)
+```python
+def test_quickstart_snippet_runs(monkeypatch):
+    monkeypatch.setenv("KIS_APPKEY", "demo")
+    monkeypatch.setenv("KIS_APPSECRET", "demo")
+    from pykis.simple import create_client
+    kis = create_client()
+    assert kis is not None
+```
+
+**예상 소요 시간**: 1주 (문서/예제/도구/테스트 일괄)
 
 #### 이슈 #5: 통합 테스트 부족
 
@@ -833,10 +912,105 @@ tests/integration/
 
 #### 1. 테스트 커버리지 개선 (긴급) 🔴
 
-**목표**: 60.27% → 80%+
+**최신 현황 (2025-12-17 측정)**:
 
-**실행 계획**:
+| 지표 | 값 | 상태 |
+|------|-----|------|
+| **전체 테스트 통과** | 840 (이전 832) | ✅ +8 |
+| **테스트 스킵** | 5 (이전 13) | ✅ -8 |
+| **단위 테스트 커버리지** | 94% | 🟢 우수 |
+| **전체 프로젝트 커버리지** | 60.27% (2024년 측정) | 🔴 개선 필요 |
+
+**완료된 작업**:
+1. ✅ test_daily_chart.py: 4개 테스트 구현 (모두 통과)
+2. ✅ test_info.py: 8개 테스트 구현 (모두 통과)
+3. ✅ test_info.py: 마켓 코드 반복 로직 완벽히 검증
+4. ✅ 모든 테스트에 상세 주석 추가
+
+**핵심 발견 사항**:
+
+##### a) KisObject.transform_() 패턴 발견
+
+**이전 인식**: "KisAPIResponse 상속 클래스는 직접 인스턴스화 불가"  
+**실제 상황**: `KisObject.transform_()` 메서드로 API 응답 데이터 자동 변환
+
 ```python
+# Mock 응답에 __data__ 속성 추가
+mock_response.__data__ = {
+    "output": {"basDt": "20250101", "clpr": 65000},
+    "__response__": Mock()
+}
+
+# 자동 변환 (별도 클래스 인스턴스화 불필요)
+result = KisDomesticDailyChartBar.transform_(mock_response.__data__)
+```
+
+**영향**: 기존 스킵된 테스트 중 추가로 10-15개 더 구현 가능
+
+##### b) Response Mock 완전성 표준화
+
+**문제**: 불완전한 Mock으로 KisAPIError 초기화 실패  
+**해결**: 표준 Mock 구조 수립
+
+```python
+# 필수 속성
+mock_response.status_code = 200
+mock_response.text = ""
+mock_response.headers = {"tr_id": "TEST_TR_ID", "gt_uid": "TEST_GT_UID"}
+
+# 필수 request 속성
+mock_response.request.method = "GET"
+mock_response.request.headers = {}
+mock_response.request.url = "http://test.com/api"
+mock_response.request.body = None
+```
+
+**영향**: 모든 Response Mock 관련 테스트 안정화
+
+##### c) 마켓 코드 반복 로직 이해
+
+**MARKET_TYPE_MAP 구조**:
+```python
+# 단일 코드 마켓 (재시도 불가)
+"KR": ["300"]           # 국내만
+"NASDAQ": ["512"]       # 나스닥만
+
+# 다중 코드 마켓 (재시도 가능)
+"US": ["512", "513", "529"]    # NASDAQ, NYSE, AMEX
+"HK": ["501", "543", "558"]    # HKEX, CNY, USD
+"VN": ["507", "508"]           # HNX, HSX
+"CN": ["551", "552"]           # SSE, SZSE
+```
+
+**테스트 선택 원칙**:
+- 재시도 로직 검증: US/HK/VN/CN/None 사용 (다중 코드)
+- 마켓 소진 검증: KR/KRX/NASDAQ 사용 (단일 코드)
+
+**선택 실수로 인한 테스트 실패 사례**:
+```python
+# ❌ 불가능한 조합 (재시도 테스트에 KR 사용)
+fake_kis.fetch.side_effect = [api_error, mock_info]  # 2회 호출 예상
+with patch('quotable_market', return_value="KR"):     # 1개 코드만
+    result = info(kis, "005930", market="KR")
+# 결과: 첫 에러 후 코드 소진 → KisNotFoundError 발생 (테스트 실패)
+
+# ✅ 올바른 조합 (재시도 테스트에 US 사용)
+fake_kis.fetch.side_effect = [api_error, mock_info]  # 2회 호출 예상
+with patch('quotable_market', return_value="US"):     # 3개 코드 가능
+    result = info(kis, "AAPL", market="US")
+# 결과: 첫 에러 후 다음 코드 시도 → 성공 (테스트 통과)
+```
+
+**실제 로직**:
+- rt_cd=7 (no data): 다음 마켓 코드로 자동 재시도
+- 다른 rt_cd (error): 즉시 예외 발생
+- 모든 코드 소진: KisNotFoundError 발생
+
+**영향**: 앞으로 마켓 관련 테스트 작성 시 정확한 선택 보장
+
+**실행 계획** (향후 개선):
+```python
+다음 우선순위 (아직 미개선):
 Week 1: client 모듈 (41% → 70%)
 Week 2: utils 모듈 (34% → 70%)
 Week 3: responses 모듈 (52% → 70%)
