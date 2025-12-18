@@ -1,0 +1,8 @@
+# Copy this file to config.yaml and fill in your credentials.
+# DO NOT commit the filled config.yaml to Git.
+
+id: "YOUR_HTS_ID"          # ex) soju06
+account: "00000000-01"     # ex) 8 digits + "-01"
+appkey: "YOUR_APPKEY"      # 36 chars
+secretkey: "YOUR_SECRET"   # 180 chars
+virtual: true               # true for paper trading, false for live
