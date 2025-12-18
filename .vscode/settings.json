@@ -6,7 +6,7 @@
         "tests",
         "--cov=pykis",
         "--cov-report=term-missing",
-        "--cov-report=html",
+        "--cov-report=html:reports/htmlcov",
         "--cov-report=xml:reports/coverage.xml",    
         "--html=reports/test_report.html",
         "--junitxml=reports/junit_report.xml",

@@ -37,3 +37,4 @@ virtual_secret.json
 /htmlcov/
 /reports/
 poetry.toml
+config.yaml

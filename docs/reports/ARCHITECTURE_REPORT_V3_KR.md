@@ -1194,159 +1194,89 @@ def test_old_style_import_still_works():
 - ✅ pykis/helpers.py
 - ✅ 테스트 (15개+)
 
----
-
-#### Week 4: 통합 테스트 기초 (Deadline: 2026-01-15)
-
-**목표**: 전체 플로우 검증
-
 **할 일**:
 - [ ] `tests/integration/` 폴더 생성 (0.5시간)
 - [ ] `tests/integration/conftest.py` 작성 (2시간)
-  - Mock fixtures
-  - API response 템플릿
-- [ ] `test_order_flow.py` (2시간) - 주문 전체 플로우
-- [ ] `test_balance_fetch.py` (2시간) - 잔고 조회
-- [ ] `test_exception_paths.py` (2시간) - 예외 처리
-- [ ] `test_websocket_reconnect.py` (2시간) - WebSocket 재연결
 
-**소요 시간**: 10.5시간
 **결과물**:
 - ✅ tests/integration/ 구조
 - ✅ 5개 통합 테스트
 - ✅ Mock 표준화
 
 ---
-
 ### Phase 1 목표 달성 지표
 
 | 지표 | 목표 | 검증 방법 |
 |------|------|----------|
-| **공개 API 크기** | 20개 이하 | `len(pykis.__all__)` <= 20 |
-| **QUICKSTART 완성** | 5분 내 시작 | 새 사용자 테스트 |
-| **예제 코드** | 5개 + README | 각 예제 실행 검증 |
-| **초보자 Facade** | SimpleKIS 동작 | `from pykis.simple import SimpleKIS` |
-| **Helpers 완성** | create_client 동작 | 환경변수 기반 생성 |
-| **통합 테스트** | 5개 이상 | `pytest tests/integration/ --tb=short` |
-| **테스트 커버리지** | 94% 이상 유지 | Coverage 리포트 |
 
 ---
 
-## 4.3 Phase 2: 품질 향상 (2개월)
 
-### 주간별 계획 (요약)
-
-#### Month 2, Week 1-2: 문서화 완성
 
 **할 일**:
 - [ ] `ARCHITECTURE.md` 상세 작성 (8시간)
 - [ ] `CONTRIBUTING.md` 작성 (4시간)
 - [ ] API Reference 자동 생성 (2시간)
 - [ ] 마이그레이션 가이드 작성 (2시간)
-
 **결과물**:
 - ✅ 상세 아키텍처 문서
 - ✅ 기여 가이드
 - ✅ 마이그레이션 문서
-
 #### Month 2, Week 3-4: 중급/고급 예제
 
 **할 일**:
-- [ ] `examples/02_intermediate/` 5개 예제 (5시간)
-- [ ] `examples/03_advanced/` 3개 예제 (3시간)
 - [ ] 예제별 README (2시간)
 
 **결과물**:
-- ✅ 8개 고급 예제
 
-#### Month 3, Week 1-2: CI/CD 파이프라인
-
-**할 일**:
 - [ ] GitHub Actions 설정 (4시간)
   - 자동 테스트
   - 커버리지 리포트
   - 배포 자동화
 - [ ] Pre-commit hooks 설정 (2시간)
 - [ ] 커버리지 배지 추가 (1시간)
-
-**결과물**:
 - ✅ 자동화 파이프라인
 - ✅ 커버리지 모니터링
-
-#### Month 3, Week 3-4: 추가 테스트
-
-**할 일**:
 - [ ] 통합 테스트 확대 (5개 → 15개)
 - [ ] 성능 테스트 추가 (5개)
 - [ ] 커버리지 90%+ 달성
-
-**결과물**:
-- ✅ 통합 테스트 15개
+#### Week 1: 공개 API 정리 ✅ **완료** (2025-12-18)
 - ✅ 커버리지 90%+
 
 ---
 
-## 4.4 Phase 3: 커뮤니티 확장 (1개월)
-
-**할 일**:
-- [ ] Jupyter Notebook 튜토리얼 5개 (10시간)
-- [ ] 비디오 튜토리얼 스크립트 (4시간)
-- [ ] 영문 문서 (QUICKSTART_EN.md 등) (6시간)
 - [ ] FAQ 작성 (2시간)
 
 **결과물**:
-- ✅ 대화형 튜토리얼
-- ✅ 영문 문서
-- ✅ 커뮤니티 자료
-
----
-
 ## 4.5 Phase 4: 생태계 확장 (1개월+)
-
 **할 일**:
 - [ ] 다국어 문서 확대 (중문, 일문)
 - [ ] API 안정성 정책 문서화
 - [ ] 성능 최적화
 - [ ] 추가 시장 지원 (선물/옵션)
 
-**결과물**:
 - ✅ 글로벌 문서
 - ✅ 성능 개선
 
 ---
-
-## 4.6 KPI 및 성공 지표
-
-### 정량적 지표
-
-| 지표 | 현재 | 1개월 | 3개월 | 6개월 | 측정 방법 |
-|------|------|--------|--------|--------|----------|
 | **공개 API** | 154개 | 20개 | 20개 | 15개 | `pykis.__all__` 크기 |
 | **문서** | 6개 | 8개 | 12개 | 15개 | 문서 파일 수 |
 | **예제** | 0개 | 5개 | 13개 | 18개 | examples/ 파일 수 |
-| **테스트** | 840 | 850 | 880 | 900 | `pytest --collect-only` |
-| **커버리지** | 94% | 94% | 90%+ | 92%+ | pytest-cov |
-| **GitHub Stars** | - | +5% | +25% | +50% | GitHub API |
-| **이슈/질문** | - | -10% | -30% | -50% | Issues 추적 |
 
-### 정성적 지표
 
 | 지표 | 목표 | 검증 방법 |
 |------|------|----------|
 | **신규 사용자 만족도** | 4.5/5.0 | Survey |
 | **온보딩 성공률** | 80% | 추적 |
 | **기여자 수** | 2배 증가 | PR 추적 |
-| **커뮤니티 활동** | 주 2개 이상 | 이슈/토론 |
 
 ---
 
 ## 4.7 위험 관리
 
-| 위험 | 확률 | 영향 | 완화 방안 |
 |------|------|------|----------|
 | **하위 호환성 깨짐** | 중간 | 높음 | Deprecation 경고 2 릴리스 유지 |
 | **문서 작성 부담** | 중간 | 중간 | 커뮤니티 기여 활용 |
-| **테스트 실패** | 낮음 | 중간 | Mock 표준화 + CI/CD |
 | **커뮤니티 반발** | 낮음 | 낮음 | 기존 import 경로 유지 (deprecated) |
 
 ---
@@ -1354,39 +1284,25 @@ def test_old_style_import_still_works():
 **다음: [PlantUML 계획](#plantuml-계획)**
 
 
-# 섹션 5: PlantUML 다이어그램 계획 (향후)
-
-## 5.1 예정된 PlantUML 다이어그램
-
-### 5.1.1 아키텍처 계층 다이어그램
 
 **파일**: `docs/diagrams/architecture_layers.puml`
 
 **목표**: Python-KIS의 7계층 아키텍처를 시각화
 
 ```puml
-@startuml architecture_layers
-!define ACCENT_COLOR #FF6B6B
 !define GOOD_COLOR #51CF66
 !define WARN_COLOR #FFA94D
 
 title Python-KIS 계층화 아키텍처
 
-rectangle "Application Layer\n(사용자 코드)" as APP #GOOD_COLOR
 rectangle "Scope Layer\n(API 진입점)" as SCOPE #GOOD_COLOR
 rectangle "Adapter Layer\n(Mixin, 기능 확장)" as ADAPTER #FFA94D
 rectangle "API Layer\n(REST/WebSocket)" as API #GOOD_COLOR
-rectangle "Client Layer\n(HTTP, WebSocket 통신)" as CLIENT #GOOD_COLOR
-rectangle "Response Layer\n(응답 변환)" as RESPONSE #FFA94D
 rectangle "Utility Layer\n(Rate Limit, Thread Safe)" as UTIL #GOOD_COLOR
 
 APP --> SCOPE
 SCOPE --> ADAPTER
 ADAPTER --> API
-API --> CLIENT
-API --> RESPONSE
-CLIENT --> UTIL
-
 note right of APP
   kis = PyKis(...)
   quote = kis.stock("005930").quote()
