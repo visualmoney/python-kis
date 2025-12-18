@@ -7,6 +7,11 @@
 
 **2.0.0 버전 이전의 라이브러리는 [여기](https://github.com/Soju06/python-kis/tree/v1.0.6), 문서는 [1](https://github.com/Soju06/python-kis/wiki/Home/d6aaf207dc523b92b52e734908dd6b8084cd36ff), [2](https://github.com/Soju06/python-kis/wiki/Tutorial/d6aaf207dc523b92b52e734908dd6b8084cd36ff), [3](https://github.com/Soju06/python-kis/wiki/Examples/d6aaf207dc523b92b52e734908dd6b8084cd36ff)에서 확인할 수 있습니다.**
 
+### 빠른 시작
+
+- [QUICKSTART.md](./QUICKSTART.md) — 설치, config.yaml 예제, 테스트 팁
+- 예제 모음: [examples/01_basic](./examples/01_basic) (hello_world, 시세/잔고, 주문, 실시간 체결가)
+
 
 ### 1.1. 라이브러리 특징
 
