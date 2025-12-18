@@ -3,7 +3,7 @@
 config.yaml의 인증 정보를 사용해 계좌 잔고를 조회합니다.
 """
 import yaml
-from pykis import PyKis
+from pykis import PyKis, KisAuth
 
 
 def load_config(path: str = "config.yaml") -> dict:
@@ -14,13 +14,15 @@ def load_config(path: str = "config.yaml") -> dict:
 def main() -> None:
     cfg = load_config()
 
-    kis = PyKis(
+    auth = KisAuth(
         id=cfg["id"],
         account=cfg["account"],
         appkey=cfg["appkey"],
         secretkey=cfg["secretkey"],
         virtual=cfg.get("virtual", False),
     )
+
+    kis = PyKis(auth, keep_token=True)
 
     account = kis.account()
     balance = account.balance()
