@@ -30,6 +30,68 @@
 
 ---
 
+## 2. 공개 타입 분리 정책 (v2.2.0+)
+
+### 2.1 문제 정의 및 해결
+
+**Phase 1 완료 (2025-12-19)**:
+- 154개 → 20개로 공개 API 축소 완료
+- `public_types.py` 분리 완료
+- Deprecation 메커니즘 구현 완료
+
+**공개 API 구조**:
+
+```python
+# pykis/public_types.py
+from typing import TypeAlias
+
+Quote: TypeAlias = _KisQuoteResponse
+Balance: TypeAlias = _KisIntegrationBalance
+Order: TypeAlias = _KisOrder
+Chart: TypeAlias = _KisChart
+Orderbook: TypeAlias = _KisOrderbook
+MarketInfo: TypeAlias = _KisMarketInfo
+TradingHours: TypeAlias = _KisTradingHours
+
+__all__ = ["Quote", "Balance", "Order", "Chart", "Orderbook", "MarketInfo", "TradingHours"]
+```
+
+```python
+# pykis/__init__.py
+__all__ = [
+    # 핵심 클래스
+    "PyKis", "KisAuth",
+    # 공개 타입
+    "Quote", "Balance", "Order", "Chart", "Orderbook", "MarketInfo", "TradingHours",
+    # 초보자 도구
+    "SimpleKIS", "create_client", "save_config_interactive",
+]
+```
+
+### 2.2 사용 예제
+
+```python
+# 권장 방식 (일반 사용자)
+from pykis import PyKis, KisAuth, Quote, Balance
+
+def analyze(quote: Quote, balance: Balance) -> None:
+    print(f"{quote.name}: {quote.price:,}원")
+
+# 고급 사용자 (내부 구조 접근)
+from pykis.types import KisObjectProtocol
+from pykis.adapter.product.quote import KisQuotableProductMixin
+```
+
+### 2.3 마이그레이션 타임라인
+
+| 버전 | 상태 | 기존 import | 새 import |
+|------|------|-------------|-----------|
+| v2.2.0 | ✅ 현재 | 동작 (경고) | ✅ 권장 |
+| v2.3.0~v2.9.x | 유지보수 | 동작 (경고) | ✅ 권장 |
+| v3.0.0 | Breaking | ❌ 제거 | ✅ 필수 |
+
+---
+
 ## 핵심 설계 원칙
 
 ### 1. 계층화 아키텍처 (Layered Architecture)
