@@ -33,5 +33,7 @@
     },
     "files.eol": "\n", // 줄 끝 문자를 LF(\n)로 통일합니다.
     "workbench.remoteIndicator.showExtensionRecommendations": true,
+    "plantuml.exportFormat": "png",
+    "plantuml.render": "Local",
 
 }
