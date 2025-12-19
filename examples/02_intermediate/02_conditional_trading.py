@@ -25,16 +25,16 @@ import os
 from datetime import datetime
 
 
-def monitor_and_trade() -> None:
+def monitor_and_trade(config_path: str | None = None, profile: str | None = None) -> None:
     """목표가 도달 시 자동 거래를 수행합니다."""
     
     # 설정
-    config_path = os.path.join(os.getcwd(), "config.yaml")
+    config_path = config_path or os.path.join(os.getcwd(), "config.yaml")
     if not os.path.exists(config_path):
         print(f"❌ {config_path}를 찾을 수 없습니다.")
         return
     
-    kis = create_client(config_path)
+    kis = create_client(config_path, profile=profile)
     simple = SimpleKIS(kis)
     
     # 거래 설정
@@ -149,8 +149,15 @@ def monitor_and_trade() -> None:
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.yaml", help="path to config file")
+    parser.add_argument("--profile", help="config profile name (virtual|real)")
+    args = parser.parse_args()
+
     try:
-        monitor_and_trade()
+        monitor_and_trade(config_path=args.config, profile=args.profile)
     except Exception as e:
         print(f"\n❌ 오류 발생: {e}")
         import traceback

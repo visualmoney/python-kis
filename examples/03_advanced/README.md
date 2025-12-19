@@ -4,6 +4,18 @@
 
 ## 📚 목록
 
+## 프로파일 사용
+
+예제는 멀티프로파일 `config.yaml`을 지원합니다. 멀티프로파일을 사용할 경우 환경변수 `PYKIS_PROFILE`을 설정하거나 각 스크립트에 `--profile <name>` 인자를 전달할 수 있습니다.
+
+예:
+```bash
+PYKIS_PROFILE=real python examples/03_advanced/01_scope_api_trading.py
+# 또는
+python examples/03_advanced/01_scope_api_trading.py --profile virtual
+```
+
+
 ### 01_scope_api_trading.py - Scope API를 사용한 심화 거래
 
 **난이도**: ⭐⭐⭐ 고급

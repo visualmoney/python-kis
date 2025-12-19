@@ -19,6 +19,7 @@ Python-KIS 사용 예제
 """
 
 from pykis import create_client
+import argparse
 from pykis.simple import SimpleKIS
 import os
 from typing import List, Tuple
@@ -212,15 +213,15 @@ class AdvancedOrderer:
         print("   또는 별도의 모니터링 로직으로 가격을 감시하세요.")
 
 
-def main() -> None:
+def main(config_path: str | None = None, profile: str | None = None) -> None:
     """메인 함수"""
-    
-    config_path = os.path.join(os.getcwd(), "config.yaml")
+
+    config_path = config_path or os.path.join(os.getcwd(), "config.yaml")
     if not os.path.exists(config_path):
         print(f"❌ {config_path}를 찾을 수 없습니다.")
         return
-    
-    kis = create_client(config_path)
+
+    kis = create_client(config_path, profile=profile)
     simple = SimpleKIS(kis)
     orderer = AdvancedOrderer(simple)
     
@@ -304,8 +305,13 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.yaml", help="path to config file")
+    parser.add_argument("--profile", help="config profile name (virtual|real)")
+    args = parser.parse_args()
+
     try:
-        main()
+        main(config_path=args.config, profile=args.profile)
     except Exception as e:
         print(f"\n❌ 오류 발생: {e}")
         import traceback

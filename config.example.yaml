@@ -1,8 +1,26 @@
-# Copy this file to config.yaml and fill in your credentials.
-# DO NOT commit the filled config.yaml to Git.
+# """
+# Multi-profile config example for Python-KIS
 
-id: "YOUR_HTS_ID"          # ex) soju06
-account: "00000000-01"     # ex) 8 digits + "-01"
-appkey: "YOUR_APPKEY"      # 36 chars
-secretkey: "YOUR_SECRET"   # 180 chars
-virtual: true               # true for paper trading, false for live
+# This file supports multiple profiles (virtual and real). Copy this file to
+# `config.yaml` and set `PYKIS_PROFILE` environment variable to select a profile,
+# or pass `--profile <name>` to example scripts that support it.
+
+# DO NOT commit the filled `config.yaml` to version control.
+# """
+
+
+default: virtual
+
+configs:
+  virtual:
+    id: "YOUR_VIRTUAL_ID"        # ex) soju06
+    account: "00000000-01"       # ex) 8 digits + "-01"
+    appkey: "YOUR_APPKEY"        # 36 chars
+    secretkey: "YOUR_SECRET"     # 180 chars
+    virtual: true
+  real:
+    id: "YOUR_REAL_ID"
+    account: "00000000-02"
+    appkey: "YOUR_REAL_APPKEY"
+    secretkey: "YOUR_REAL_SECRET"
+    virtual: false

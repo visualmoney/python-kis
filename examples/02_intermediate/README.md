@@ -4,6 +4,18 @@
 
 ## 📚 목록
 
+## 프로파일 사용
+
+예제는 멀티프로파일 `config.yaml`을 지원합니다. 멀티프로파일을 사용할 경우 환경변수 `PYKIS_PROFILE`을 설정하거나 각 스크립트에 `--profile <name>` 인자를 전달할 수 있습니다.
+
+예:
+```bash
+PYKIS_PROFILE=real python examples/02_intermediate/01_multiple_symbols.py
+# 또는
+python examples/02_intermediate/01_multiple_symbols.py --profile virtual
+```
+
+
 ### 01_multiple_symbols.py - 여러 종목 동시 조회 및 분석
 
 **난이도**: ⭐⭐ 중급

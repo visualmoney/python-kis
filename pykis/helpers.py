@@ -9,20 +9,54 @@ from pykis.kis import PyKis
 __all__ = ["load_config", "create_client", "save_config_interactive"]
 
 
-def load_config(path: str = "config.yaml") -> dict[str, Any]:
-    """Load YAML config from path."""
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+def load_config(path: str = "config.yaml", profile: str | None = None) -> dict[str, Any]:
+        """Load YAML config from path.
+
+        Supports legacy flat config and the new multi-profile format:
+
+        multi-profile format example:
+            default: virtual
+            configs:
+                virtual:
+                    id: ...
+                    account: ...
+                    appkey: ...
+                    secretkey: ...
+                    virtual: true
+                real:
+                    id: ...
+                    ...
+
+        Profile selection order:
+            1. explicit `profile` argument
+            2. environment `PYKIS_PROFILE`
+            3. `default` key in multi-config
+            4. fallback to 'virtual'
+        """
+        import os
+
+        profile = profile or os.environ.get("PYKIS_PROFILE")
+        with open(path, "r", encoding="utf-8") as f:
+                cfg = yaml.safe_load(f)
+
+        if isinstance(cfg, dict) and "configs" in cfg:
+                sel = profile or cfg.get("default") or "virtual"
+                selected = cfg["configs"].get(sel)
+                if not selected:
+                        raise ValueError(f"Profile '{sel}' not found in {path}")
+                return selected
+
+        return cfg
 
 
-def create_client(config_path: str = "config.yaml", keep_token: bool = True) -> PyKis:
+def create_client(config_path: str = "config.yaml", keep_token: bool = True, profile: str | None = None) -> PyKis:
     """Create a `PyKis` client from a YAML config file.
 
     If `virtual` is true in the config, the function will construct a
     `KisAuth` and pass it as the `virtual_auth` argument to `PyKis`.
     This avoids accidentally treating a virtual-only auth as a real auth.
     """
-    cfg = load_config(config_path)
+    cfg = load_config(config_path, profile=profile)
 
     auth = KisAuth(
         id=cfg["id"],

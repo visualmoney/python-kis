@@ -20,19 +20,20 @@ from pykis import create_client
 from pykis.simple import SimpleKIS
 from typing import List, Dict
 import os
+import argparse
 
 
-def analyze_multiple_stocks() -> None:
+def analyze_multiple_stocks(config_path: str | None = None, profile: str | None = None) -> None:
     """여러 종목을 조회하고 성과를 분석합니다."""
     
     # config.yaml에서 설정 로드 및 클라이언트 생성
-    config_path = os.path.join(os.getcwd(), "config.yaml")
+    config_path = config_path or os.path.join(os.getcwd(), "config.yaml")
     if not os.path.exists(config_path):
         print(f"❌ {config_path}를 찾을 수 없습니다.")
         print("   루트 디렉터리에서 실행하거나 config.yaml을 생성하세요.")
         return
     
-    kis = create_client(config_path)
+    kis = create_client(config_path, profile=profile)
     simple = SimpleKIS(kis)
     
     # 분석할 종목 목록
@@ -127,8 +128,13 @@ def analyze_multiple_stocks() -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.yaml", help="path to config file")
+    parser.add_argument("--profile", help="config profile name (virtual|real)")
+    args = parser.parse_args()
+
     try:
-        analyze_multiple_stocks()
+        analyze_multiple_stocks(config_path=args.config, profile=args.profile)
     except KeyboardInterrupt:
         print("\n🛑 사용자가 중단했습니다.")
     except Exception as e:

@@ -16,37 +16,22 @@ Python-KIS 사용 예제
   - PyKis: 한국투자증권 API (직접 사용)
 """
 
-from pykis import PyKis, KisAuth
-import yaml
+from pykis import PyKis, KisAuth, create_client
 import os
+import argparse
 from typing import Dict, List
 
 
-def advanced_trading_with_scope() -> None:
+def advanced_trading_with_scope(config_path: str | None = None, profile: str | None = None) -> None:
     """PyKis Scope API를 사용한 심화 거래"""
-    
-    config_path = os.path.join(os.getcwd(), "config.yaml")
+
+    config_path = config_path or os.path.join(os.getcwd(), "config.yaml")
     if not os.path.exists(config_path):
         print(f"❌ {config_path}를 찾을 수 없습니다.")
         return
-    
-    # config 로드
-    with open(config_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
-    
-    # PyKis 생성
-    auth = KisAuth(
-        id=cfg["id"],
-        appkey=cfg["appkey"],
-        secretkey=cfg["secretkey"],
-        account=cfg["account"],
-        virtual=cfg.get("virtual", False),
-    )
-    
-    if auth.virtual:
-        kis = PyKis(None, auth)
-    else:
-        kis = PyKis(auth)
+
+    # Create PyKis client using helpers.create_client (supports multi-profile)
+    kis = create_client(config_path, profile=profile)
     
     print("=" * 80)
     print("Python-KIS 고급 예제 01: Scope API를 사용한 심화 거래")
@@ -138,8 +123,13 @@ def advanced_trading_with_scope() -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.yaml", help="path to config file")
+    parser.add_argument("--profile", help="config profile name (virtual|real)")
+    args = parser.parse_args()
+
     try:
-        advanced_trading_with_scope()
+        advanced_trading_with_scope(config_path=args.config, profile=args.profile)
     except Exception as e:
         print(f"\n❌ 오류 발생: {e}")
         import traceback

@@ -4,19 +4,31 @@
 
 ## ⚠️ 준비 (중요)
 
-1. 루트의 `config.example.yaml`을 `config.yaml`로 복사
-   ```bash
-   cp config.example.yaml config.yaml
-   ```
+1. 예제용 설정을 복사하세요. 선택지:
+   - 전체 멀티프로파일 예제 사용:
+     ```bash
+     cp config.example.yaml config.yaml
+     ```
+   - 가상/실계좌 전용 예제 사용:
+     ```bash
+     cp config.example.virtual.yaml config.yaml
+     # 또는
+     cp config.example.real.yaml config.yaml
+     ```
 
-2. `config.yaml`에 실제 인증 정보 입력
+2. `config.yaml`에 실제 인증 정보 입력 (각 프로파일 내부에 위치)
    - `id`: HTS 로그인 ID
    - `account`: 계좌번호 (XXXXXXXX-XX)
    - `appkey`: AppKey (36자)
    - `secretkey`: SecretKey (180자)
    - `virtual`: true (모의투자) / false (실계좌)
 
-3. **민감정보 보호**: `config.yaml`을 .gitignore에 추가하고 커밋하지 마세요.
+3. 프로파일 선택 (멀티프로파일 사용 시)
+   - 환경변수: `PYKIS_PROFILE=real` 또는 `PYKIS_PROFILE=virtual`
+   - 또는 스크립트 인자: `--profile real`
+   - 기본값: `virtual` (설정에서 `default`가 있으면 해당 값 사용)
+
+4. **민감정보 보호**: `config.yaml`을 .gitignore에 추가하고 커밋하지 마세요.
    ```bash
    echo "config.yaml" >> .gitignore
    ```

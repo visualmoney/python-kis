@@ -22,15 +22,15 @@ from pykis.simple import SimpleKIS
 import os
 
 
-def analyze_portfolio() -> None:
+def analyze_portfolio(config_path: str | None = None, profile: str | None = None) -> None:
     """포트폴리오 성과를 분석합니다."""
     
-    config_path = os.path.join(os.getcwd(), "config.yaml")
+    config_path = config_path or os.path.join(os.getcwd(), "config.yaml")
     if not os.path.exists(config_path):
         print(f"❌ {config_path}를 찾을 수 없습니다.")
         return
     
-    kis = create_client(config_path)
+    kis = create_client(config_path, profile=profile)
     simple = SimpleKIS(kis)
     
     print("=" * 70)
@@ -138,8 +138,15 @@ def analyze_portfolio() -> None:
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.yaml", help="path to config file")
+    parser.add_argument("--profile", help="config profile name (virtual|real)")
+    args = parser.parse_args()
+
     try:
-        analyze_portfolio()
+        analyze_portfolio(config_path=args.config, profile=args.profile)
     except Exception as e:
         print(f"\n❌ 오류 발생: {e}")
         import traceback

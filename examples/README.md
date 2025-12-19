@@ -95,7 +95,13 @@ source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\Activate.ps1  # Windows PowerShell
 
 # 설정 파일 생성
+# 옵션 1: 전체 멀티프로파일 예제 사용
 cp config.example.yaml config.yaml
+
+# 옵션 2: 프로파일별 예제 사용 (가상/실계좌)
+cp config.example.virtual.yaml config.yaml
+# 또는
+cp config.example.real.yaml config.yaml
 
 # config.yaml 편집
 nano config.yaml
@@ -124,14 +130,16 @@ python examples/01_basic/get_quote.py
 ### 4단계: 중급/고급 예제 진행
 
 ```bash
-# 여러 종목 분석
-python examples/02_intermediate/01_multiple_symbols.py
+# 여러 종목 분석 (프로파일 선택 예시)
+python examples/02_intermediate/01_multiple_symbols.py --profile virtual
 
 # 포트폴리오 분석
 python examples/02_intermediate/03_portfolio_analysis.py
 
-# Scope API 사용
-python examples/03_advanced/01_scope_api_trading.py
+# Scope API 사용 (환경변수로도 프로파일 선택 가능)
+PYKIS_PROFILE=real python examples/03_advanced/01_scope_api_trading.py
+# 또는
+python examples/03_advanced/01_scope_api_trading.py --profile real
 ```
 
 ---
