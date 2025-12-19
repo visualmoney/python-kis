@@ -8,11 +8,37 @@
 
 ## 2. Java 설치 (OpenJDK)
 1. AdoptOpenJDK 또는 OpenJDK 배포판을 설치합니다 (예: Azul Zulu, Amazon Corretto 등).
-2. Windows 설치(예: Azul Zulu) 예시:
+2. Windows 설치(예: Amazon Corretto) 예시: (관리자 권한)
 ```powershell
-choco install zulu11 -y
+# 1. 관리자 권한 체크
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Error "이 스크립트는 관리자 권한으로 실행되어야 합니다."
+    exit
+}
+
+Write-Host "--- Amazon Corretto 21(17) 설치를 시작합니다 ---" -ForegroundColor Cyan
+
+# 2. Chocolatey를 이용한 Corretto 설치
+# --yes: 모든 프롬프트에 자동 동의
+# --no-progress: 콘솔 로그 단순화 (선택 사항)
+choco install amazoncorretto21 --yes
+# choco install amazoncorretto17 --yes
+
+# 3. 설치 후 환경 변수 갱신 (현재 세션에 즉시 반영)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+# 4. 설치 결과 확인
+if (Get-Command java -ErrorAction SilentlyContinue) {
+    $javaVersion = java -version 2>&1
+    Write-Host "`n[성공] Amazon Corretto가 설치되었습니다." -ForegroundColor Green
+    Write-Host $javaVersion
+} else {
+    Write-Host "`n[실패] 설치 중 오류가 발생했거나 경로가 인식되지 않습니다." -ForegroundColor Red
+}
+
+Write-Host "`n--- 스크립트 종료 ---" -ForegroundColor Cyan
 ```
-- 수동 설치 시: https://adoptium.net/ 에서 설치 후 `JAVA_HOME`을 설정합니다.
+- 수동 설치 시: https://aws.amazon.com/ko/corretto/ 에서 설치 후 `JAVA_HOME`을 설정합니다.
 
 3. 설치 확인:
 ```powershell
@@ -80,3 +106,37 @@ Alice -> Bob: Hello
 
 ---
 작성자: 자동 생성 가이드
+
+## 관리자용 설치 스크립트 (권장)
+
+관리자 권한 PowerShell에서 자동으로 Java(OpenJDK)와 Graphviz를 설치하려면 아래 제공된 스크립트를 사용하세요. 이 스크립트는 Chocolatey가 있으면 choco로 시도하고, 실패하면 `winget` 대체를 시도합니다. 설치 로그는 스크립트와 동일 폴더에 `install_plantuml_admin.log`로 저장됩니다.
+
+**파일**: `tools/install_plantuml_admin.ps1`
+
+관리자 PowerShell에서 실행 예:
+
+```powershell
+# 관리자 권한으로 PowerShell 열기
+powershell -ExecutionPolicy Bypass -File .\tools\install_plantuml_admin.ps1
+```
+
+성공/실패 확인 방법:
+
+```powershell
+# Java 확인
+java -version
+
+# Graphviz 확인
+dot -V
+
+# 로그 파일 보기
+Get-Content .\tools\install_plantuml_admin.log -Tail 200
+```
+
+만약 설치 중 권한 문제 또는 패키지 없음 오류가 발생하면, 로그 파일(`install_plantuml_admin.log`)의 마지막 부분을 확인하시고 안내에 따라 수동으로 다음 사이트에서 설치하세요:
+
+- Amazon Corretto / OpenJDK: https://aws.amazon.com/corretto/ 또는 https://adoptium.net/
+- Graphviz: https://graphviz.org/download/
+
+스크립트가 관리자 권한으로 재실행을 시도하지만, 자동 권한 상승이 실패하면 수동으로 "관리자 권한으로 PowerShell 실행" 후 다시 실행해 주세요.
+
