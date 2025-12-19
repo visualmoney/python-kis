@@ -21,8 +21,8 @@ Write-Host "--- Amazon Corretto 21(17) 설치를 시작합니다 ---" -Foregroun
 # 2. Chocolatey를 이용한 Corretto 설치
 # --yes: 모든 프롬프트에 자동 동의
 # --no-progress: 콘솔 로그 단순화 (선택 사항)
-choco install amazoncorretto21 --yes
-# choco install amazoncorretto17 --yes
+choco install correttojdk --yes
+# choco install correttojdk17 --yes
 
 # 3. 설치 후 환경 변수 갱신 (현재 세션에 즉시 반영)
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
@@ -107,36 +107,29 @@ Alice -> Bob: Hello
 ---
 작성자: 자동 생성 가이드
 
-## 관리자용 설치 스크립트 (권장)
+## 관리자 권한 설치 안내 (간단)
 
-관리자 권한 PowerShell에서 자동으로 Java(OpenJDK)와 Graphviz를 설치하려면 아래 제공된 스크립트를 사용하세요. 이 스크립트는 Chocolatey가 있으면 choco로 시도하고, 실패하면 `winget` 대체를 시도합니다. 설치 로그는 스크립트와 동일 폴더에 `install_plantuml_admin.log`로 저장됩니다.
-
-**파일**: `tools/install_plantuml_admin.ps1`
-
-관리자 PowerShell에서 실행 예:
+관리자 권한 PowerShell에서 간단하게 다음 명령을 실행하여 Java(OpenJDK)와 Graphviz를 설치할 수 있습니다.
 
 ```powershell
-# 관리자 권한으로 PowerShell 열기
-powershell -ExecutionPolicy Bypass -File .\tools\install_plantuml_admin.ps1
+# 반드시 관리자 권한으로 PowerShell을 실행하세요 (Run as Administrator)
+choco install correttojdk --yes
+choco install graphviz -y
 ```
 
-성공/실패 확인 방법:
+위 방법이 불가한 경우 또는 choco 패키지가 없는 환경에서는 `winget` 또는 공식 설치 프로그램을 사용하여 수동으로 설치하세요.
+
+설치 확인:
 
 ```powershell
-# Java 확인
 java -version
-
-# Graphviz 확인
 dot -V
-
-# 로그 파일 보기
-Get-Content .\tools\install_plantuml_admin.log -Tail 200
 ```
 
-만약 설치 중 권한 문제 또는 패키지 없음 오류가 발생하면, 로그 파일(`install_plantuml_admin.log`)의 마지막 부분을 확인하시고 안내에 따라 수동으로 다음 사이트에서 설치하세요:
+문제가 발생하면, 설치 로그(관리자 콘솔 출력) 또는 아래 공식 페이지를 참고하여 수동으로 설치하시기 바랍니다:
 
 - Amazon Corretto / OpenJDK: https://aws.amazon.com/corretto/ 또는 https://adoptium.net/
 - Graphviz: https://graphviz.org/download/
 
-스크립트가 관리자 권한으로 재실행을 시도하지만, 자동 권한 상승이 실패하면 수동으로 "관리자 권한으로 PowerShell 실행" 후 다시 실행해 주세요.
+(참고: `tools/` 폴더와 관리자 자동 설치 스크립트는 제거되었습니다 — 수동/관리자 콘솔 실행을 권장합니다.)
 
