@@ -22,6 +22,21 @@ function Log {
     Write-Host $msg
 }
 
+# Ensure console uses UTF-8 to avoid Korean text garbling in output
+try {
+    # Set Windows console code page to UTF-8
+    chcp 65001 > $null 2>&1
+    # Set .NET Console encodings
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+    # Set PowerShell output encoding for older PS versions
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+    $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+    Log "[INFO] 콘솔/출력 인코딩을 UTF-8로 설정했습니다."
+} catch {
+    Log "[WARN] 콘솔 인코딩 설정 중 오류 발생: $_"
+}
+
 # 관리자 권한 확인
 Add-Type -AssemblyName System.Security
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
