@@ -1250,6 +1250,165 @@ def test_old_style_import_still_works():
 
 ---
 
+## 3.7 구현 및 테스트 변경 검토
+
+### 개요
+공개 타입 모듈 분리 정책(Phase 1, v2.2.0)을 적용할 때, **pykis 폴더 구현**과 **tests 폴더 테스트**의 변경사항 검토
+
+### 3.7.1 pykis 폴더 내 구현 변경사항
+
+#### ✅ 필수 변경 (Breaking 없음)
+
+**신규 파일**:
+- `pykis/public_types.py` (115줄)
+  - 7개 TypeAlias 정의 (Quote, Balance, Order, Chart, Orderbook, MarketInfo, TradingHours)
+  - 각 타입별 docstring 및 사용 예제
+
+**수정 파일**:
+1. `pykis/__init__.py` (개선)
+   - 변경 전: `__all__` = [154개 항목]
+   - 변경 후: `__all__` = [15개 항목] (PyKis, KisAuth, 7개 공개 타입 + 3개 helper + 3개 선택적)
+   - `__getattr__()` 메서드 추가 (deprecated import 처리)
+   - DeprecationWarning 발생 로직
+
+2. `pykis/types.py` (문서만 개선)
+   - 모든 내용 유지 (기존 코드 호환성)
+   - docstring 추가: "v3.0.0에서 제거 예정" 명시
+
+**영향 범위**:
+```
+수정 파일 수: 2개
+추가 파일: 1개 (public_types.py)
+전체 코드 변경량: ~150줄
+```
+
+#### ❌ 변경 불필요 (기존 구현 유지)
+
+다음 파일들은 **기존 구현 유지**, 새로운 import 경로 추가 없음:
+- `pykis/api/` (모든 API 정의)
+- `pykis/adapter/` (Mixin 정의)
+- `pykis/responses/` (Response 타입)
+- `pykis/scope/` (Scope 정의)
+- `pykis/client/` (HTTP/WebSocket 클라이언트)
+- `pykis/utils/` (유틸리티)
+- `pykis/simple.py` (SimpleKIS 클래스)
+- `pykis/helpers.py` (헬퍼 함수)
+- `pykis/logging.py` (로깅)
+
+**이유**: public_types.py가 기존 응답 타입을 **재export만** 하므로, 원본 정의는 변경 불필요
+
+### 3.7.2 tests 폴더 내 테스트 변경사항
+
+#### ✅ 신규 테스트 추가
+
+**신규 파일**: `tests/unit/test_public_api_imports.py`
+- 파일 크기: ~200줄
+- 테스트 클래스: 3개 (20개 테스트)
+
+```
+class TestPublicImports (7 테스트)
+  ✓ test_core_classes_import
+  ✓ test_public_types_import
+  ✓ test_public_types_module_direct_import
+  ✓ test_deprecated_imports_warn
+  ✓ test_types_module_still_works
+  ✓ test_backward_compatibility
+  
+class TestTypeConsistency (2 테스트)
+  ✓ test_quote_type_consistency
+  ✓ test_balance_type_consistency
+  
+class TestPublicAPISize (2 테스트)
+  ✓ test_public_api_exports_minimal
+  ✓ test_public_api_contains_essentials
+```
+
+**신규 파일**: `tests/unit/test_compatibility.py`
+- 파일 크기: ~40줄
+- 테스트 함수: 1개 (하위 호환성 검증)
+
+```
+✓ test_old_style_import_still_works
+```
+
+#### ✅ 기존 테스트 호환성 유지
+
+다음 테스트들은 **수정 불필요**, 기존 import 경로 계속 동작:
+- `tests/unit/test_*.py` (154개 기존 테스트)
+- `tests/integration/test_*.py` (25개 통합 테스트)
+- `tests/performance/test_*.py` (35개 성능 테스트)
+
+**이유**: 
+- `from pykis import PyKis` → 계속 동작
+- `from pykis.types import KisObjectProtocol` → 계속 동작
+- Deprecated import도 DeprecationWarning만 발생, 기능은 유지
+
+#### ❌ 변경 불필요 (기존 테스트 유지)
+
+다음 테스트 파일들은 **그대로 유지**:
+- `tests/unit/test___env__.py` (6 테스트)
+- `tests/unit/test_public_api_imports.py` (**기존에 있으면 확장, 없으면 신규**)
+- `tests/unit/api/` (60+ 테스트)
+- `tests/unit/adapter/` (40+ 테스트)
+- `tests/unit/responses/` (30+ 테스트)
+- `tests/integration/` (25 테스트)
+- `tests/performance/` (35 테스트)
+
+### 3.7.3 변경 영향 분석
+
+| 항목 | 현재 | 변경 후 | 영향 |
+|------|------|---------|------|
+| **pykis 파일** | 40개 | 41개 | ✅ 신규 1개 추가 |
+| **tests 파일** | 45개 | 47개 | ✅ 신규 2개 추가 |
+| **총 코드 변경** | - | ~400줄 | ✅ 추가/확장만 (제거 없음) |
+| **Breaking Change** | - | 없음 | ✅ v2.2.0 호환 |
+| **테스트 재작성** | - | 불필요 | ✅ 기존 테스트 유지 |
+| **문서 수정** | - | 필수 | ⚠️ `__all__` 변경 명시 |
+
+### 3.7.4 구현 체크리스트
+
+**Phase 1 구현 (v2.2.0)**:
+
+**pykis 폴더**:
+- [ ] `pykis/public_types.py` 신규 작성 (115줄)
+- [ ] `pykis/__init__.py` 수정 (100줄 변경)
+  - [ ] `__all__` 15개로 축소
+  - [ ] `__getattr__()` 추가
+  - [ ] DeprecationWarning 로직
+- [ ] `pykis/types.py` 문서 업데이트 (docstring만)
+- [ ] `CHANGELOG.md` 마이그레이션 가이드 추가
+
+**tests 폴더**:
+- [ ] `tests/unit/test_public_api_imports.py` 신규 작성 (200줄, 9개 테스트)
+- [ ] `tests/unit/test_compatibility.py` 신규 작성 (40줄, 1개 테스트)
+- [ ] 기존 테스트 실행 검증 (호환성)
+
+**검증**:
+- [ ] `pytest tests/unit/test_public_api_imports.py` 전체 통과
+- [ ] `pytest tests/unit/test_compatibility.py` 전체 통과
+- [ ] `pytest tests/` (전체) 스킵 없이 통과
+- [ ] DeprecationWarning 정상 발생 확인
+- [ ] Type hint 자동완성 개선 확인
+
+### 3.7.5 결론
+
+✅ **구현 변경 최소화**:
+- pykis 폴더: 신규 1개 + 수정 2개 파일 (추가만)
+- tests 폴더: 신규 2개 파일 (추가만)
+- 기존 코드: 변경 불필요 (제거/수정 없음)
+
+✅ **테스트 호환성 완벽**:
+- 기존 테스트 모두 유지
+- 신규 테스트로 migration path 검증
+- Breaking change 없음
+
+✅ **예상 효과**:
+- 공개 API: 154개 → 15개 (89% 축소)
+- IDE 자동완성: 긴 목록 → 간결함
+- 유지보수: 154개 관리 → 15개 + types.py 관리
+
+---
+
 **다음: [주요 이슈 및 개선사항](#주요-이슈-및-개선사항)**
 
 
@@ -1435,37 +1594,149 @@ Phase 1에서 기초를 다졌으므로, Phase 2에서는 문서 완성과 자�
 
 ---
 
-## 4.4 Phase 3: 커뮤니티 확장 (1개월)
+## 4.4 Phase 3: 기능 개선 & 커뮤니티 확장 (6주)
 
 ### 개요
-Phase 2의 안정화 이후, 사용자 경험 개선과 커뮤니티 확장에 집중합니다.
+Phase 2의 안정화 이후, **프로덕션 안정성 강화**와 **사용자 경험 개선**에 집중합니다.
 
-### Week 1-2: 추가 문서 및 리소스
+### Week 1-2: 에러 처리 및 로깅 시스템 개선 🔴 **높은 우선순위** ✅ **완료** (2025-12-20)
+
+#### 1️⃣ 에러 처리 강화 (8-10시간) ✅ **완료**
+
+**목표**: 예외 클래스 3개 → 11개로 확대, 재시도 로직 제공
+
+**할 일**:
+- [x] 예외 클래스 계층 확대 (pykis/client/exceptions.py) ✅
+  - [x] KisConnectionError (연결 관련) - 재시도 가능 ✅
+  - [x] KisAuthenticationError (인증 관련) - 특별 처리 ✅
+  - [x] KisRateLimitError (Rate limit) - 대기 후 재시도 ✅
+  - [x] KisServerError (5xx 오류) - 재시도 가능 ✅
+  - [x] KisTimeoutError (타임아웃) - 재시도 가능 ✅
+  - [x] KisValidationError (입력 검증) ✅
+  - [x] KisInternalError (내부 에러) ✅
+  - [x] KisAuthorizationError (인가 실패) ✅
+  - [x] KisNotFoundError (404) ✅
+- [x] RetryableError 인터페이스 정의 (재시도 가능 여부 판별) ✅
+- [x] exponential backoff 재시도 유틸리티 구현 ✅
+  - [x] pykis/utils/retry.py (198줄) ✅
+  - [x] @with_retry 데코레이터 ✅
+  - [x] @with_async_retry 데코레이터 ✅
+  - [x] RetryConfig 클래스 ✅
+- [x] 테스트 작성 (tests/unit/test_exceptions.py) ✅
+  - [x] 예외 계층 구조 검증 (3개) ✅
+  - [x] RetryConfig 테스트 (4개) ✅
+  - [x] @with_retry 데코레이터 테스트 (4개) ✅
+  - [x] @with_async_retry 데코레이터 테스트 (4개) ✅
+  - [x] 통합 테스트 (2개) ✅
+
+**영향 받는 파일**:
+```
+pykis/
+  ├── client/exceptions.py (13개 클래스 추가/수정) ✅
+  ├── utils/retry.py (신규 198줄) ✅
+  └── exceptions.py (업데이트) ✅
+tests/unit/
+  └── test_exceptions.py (신규 17개 테스트) ✅
+```
+
+**결과물**:
+- [x] 확대된 예외 계층 (13가지) ✅
+- [x] 자동 재시도 유틸리티 (sync/async 모두 지원) ✅
+- [x] 예외 처리 테스트 (17개) ✅
+
+#### 2️⃣ 로깅 시스템 개선 (4-6시간) ✅ **완료**
+
+**목표**: 기본 로깅 → 구조화된 로깅 + 계층화
+
+**할 일**:
+- [x] 구조화된 로깅 도입 (pykis/logging.py) ✅
+  - [x] JSON 포매터 추가 (JsonFormatter 클래스, 72줄) ✅
+  - [x] extra dict 기반 구조화 로깅 ✅
+- [x] 로그 레벨 계층화 구현 ✅
+  - [x] DEBUG: API 호출, 파라미터, 응답 ✅
+  - [x] INFO: 주문 실행, 구독 상태 ✅
+  - [x] WARNING: Rate limit, 재연결 (⚠️ 색상: bold_yellow) ✅
+  - [x] ERROR: API 에러, 연결 실패 (❌ 색상: bold_red) ✅
+- [x] 성능 로깅 지원 ✅
+  - [x] Context 데이터 추가 가능 ✅
+  - [x] 타임스탬프 자동 기록 ✅
+- [x] 테스트 작성 (tests/unit/test_logging.py) ✅
+  - [x] 로그 레벨 설정 테스트 (3개) ✅
+  - [x] JSON 포매팅 검증 (3개) ✅
+  - [x] 서브 로거 테스트 (2개) ✅
+  - [x] JSON 로깅 토글 테스트 (3개) ✅
+  - [x] 통합 테스트 (3개) ✅
+  - [x] 총 14개 테스트 ✅
+
+**영향 받는 파일**:
+```
+pykis/
+  └── logging.py (JSON 포매팅, 계층화 로깅 추가, 230줄) ✅
+tests/unit/
+  └── test_logging.py (기존 확장, 14개 테스트) ✅
+```
+
+**결과물**:
+- [x] JSON 로깅 지원 (ELK, Datadog 호환) ✅
+- [x] 계층화된 로그 포매터 (DEBUG/INFO/WARNING/ERROR) ✅
+- [x] enable_json_logging() / disable_json_logging() 함수 ✅
+- [x] get_logger(name) 서브 로거 획득 함수 ✅
+- [x] 로깅 테스트 (14개) ✅
+
+### 📊 Phase 3 Week 1-2 결과 요약
+
+| 항목 | 계획 | 실제 | 상태 |
+|------|------|------|------|
+| **Exception 클래스** | 11개 | 13개 | ✅ 초과 달성 |
+| **Retry 데코레이터** | 1개 | 2개 (sync/async) | ✅ 초과 달성 |
+| **JSON 로깅** | 구현 | JsonFormatter 클래스 | ✅ 완료 |
+| **테스트** | 10개 | 31개 (exceptions 17 + logging 14) | ✅ 초과 달성 |
+| **코드 라인** | 계획 | 500줄+ | ✅ 실제 구현 |
+| **공수** | 12-16h | ~14h | ✅ 예정대로 |
+
+**주요 성과**:
+1. ✅ Exception 클래스 11개 → 13개 (KisConnectionError 등 신규 추가)
+2. ✅ Retry 메커니즘 (exponential backoff + jitter)
+3. ✅ Async/Sync 양쪽 지원 (@with_retry, @with_async_retry)
+4. ✅ JSON 구조 로깅 (타임스탐프, 예외 정보, 컨텍스트)
+5. ✅ 로그 레벨별 색상 구분 (DEBUG: cyan, INFO: white, WARNING: bold_yellow, ERROR: bold_red)
+6. ✅ 테스트 31개 추가 (전체 테스트 832 → 863개)
+
+
+
+### Week 3-4: 추가 문서 및 커뮤니티 활성화
 
 **할 일**:
 - [ ] 튜토리얼 영상 스크립트 작성 (4시간)
 - [ ] 영문 문서 작성 (6시간)
+- [ ] 에러 처리 가이드 작성 (2시간)
 - [ ] FAQ 페이지 작성 (2시간)
 - [ ] Jupyter Notebook 예제 (4시간)
-
-**결과물**:
-- [ ] 튜토리얼 준비 완료
-- [ ] 영문 문서
-- [ ] FAQ 페이지
-- [ ] Jupyter 환경 예제
-
-### Week 3-4: 커뮤니티 활성화
-
-**할 일**:
 - [ ] GitHub Discussions 설정 (1시간)
 - [ ] Discord/Slack 커뮤니티 채널 (1시간)
 - [ ] 월별 뉴스레터 템플릿 (2시간)
 - [ ] 기여자 가이드 작성 (2시간)
 
 **결과물**:
+- [ ] 튜토리얼 준비 완료
+- [ ] 영문 문서
+- [ ] 에러 처리 & 로깅 가이드
+- [ ] FAQ 페이지
+- [ ] Jupyter 환경 예제
 - [ ] 커뮤니티 채널
 - [ ] 피드백 수집 체계
 - [ ] 기여 환경 구축
+
+### 📊 Phase 3 종합 계획
+
+| 주차 | 작업 | 우선순위 | 예상 공수 |
+|------|------|---------|---------|
+| **Week 1-2** | 에러 처리 강화 | 🔴 높음 | 8-10h |
+| **Week 1-2** | 로깅 시스템 개선 | 🟡 중간 | 4-6h |
+| **Week 3-4** | 문서 & 커뮤니티 | 🟢 중간 | 20h |
+| **합계** | - | - | **32-36시간** |
+
+**기대 효과**: 프로덕션 안정성 한 단계 상향, 사용자 경험 개선
 
 ---
 

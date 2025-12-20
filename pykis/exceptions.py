@@ -1,10 +1,33 @@
-from pykis.client.exceptions import KisAPIError, KisException, KisHTTPError
-from pykis.responses.exceptions import KisMarketNotOpenedError, KisNotFoundError
+from pykis.client.exceptions import (
+    KisAPIError,
+    KisAuthenticationError,
+    KisAuthorizationError,
+    KisConnectionError,
+    KisException,
+    KisHTTPError,
+    KisInternalError,
+    KisNotFoundError,
+    KisRateLimitError,
+    KisRetryableError,
+    KisServerError,
+    KisTimeoutError,
+    KisValidationError,
+)
+from pykis.responses.exceptions import KisMarketNotOpenedError
 
 __all__ = [
     "KisException",
     "KisHTTPError",
     "KisAPIError",
-    "KisMarketNotOpenedError",
+    "KisConnectionError",
+    "KisAuthenticationError",
+    "KisAuthorizationError",
+    "KisRateLimitError",
     "KisNotFoundError",
+    "KisValidationError",
+    "KisServerError",
+    "KisTimeoutError",
+    "KisInternalError",
+    "KisRetryableError",
+    "KisMarketNotOpenedError",
 ]

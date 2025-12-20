@@ -10,6 +10,16 @@ __all__ = [
     "KisException",
     "KisHTTPError",
     "KisAPIError",
+    "KisConnectionError",
+    "KisAuthenticationError",
+    "KisAuthorizationError",
+    "KisRateLimitError",
+    "KisNotFoundError",
+    "KisValidationError",
+    "KisServerError",
+    "KisTimeoutError",
+    "KisInternalError",
+    "KisRetryableError",
 ]
 
 
@@ -159,3 +169,89 @@ class KisAPIError(KisException):
         self.gt_uid = gt_uid
         self.msg_cd = msg_cd
         self.msg1 = msg1
+
+
+# 구체적인 HTTP 상태 코드별 에러 클래스
+class KisConnectionError(KisHTTPError):
+    """연결 실패 (4xx/5xx 제외)
+    
+    네트워크 연결 문제, 타임아웃, DNS 실패 등으로 인한 예외
+    """
+    pass
+
+
+class KisAuthenticationError(KisHTTPError):
+    """인증 실패 (401 Unauthorized)
+    
+    AppKey, AppSecret, 토큰이 유효하지 않거나 만료된 경우
+    """
+    pass
+
+
+class KisAuthorizationError(KisHTTPError):
+    """인가 실패 (403 Forbidden)
+    
+    사용자가 요청된 리소스에 접근할 권한이 없는 경우
+    """
+    pass
+
+
+class KisNotFoundError(KisHTTPError):
+    """리소스 없음 (404 Not Found)
+    
+    요청한 리소스가 존재하지 않는 경우
+    """
+    pass
+
+
+class KisValidationError(KisHTTPError):
+    """요청 검증 실패 (400 Bad Request)
+    
+    잘못된 요청 파라미터, 형식 오류 등
+    """
+    pass
+
+
+class KisRateLimitError(KisHTTPError):
+    """속도 제한 초과 (429 Too Many Requests)
+    
+    API 호출 한도를 초과한 경우
+    재시도 가능 (Retryable)
+    """
+    pass
+
+
+class KisServerError(KisHTTPError):
+    """서버 오류 (5xx)
+    
+    서버 내부 오류, 게이트웨이 오류 등
+    재시도 가능 (Retryable)
+    """
+    pass
+
+
+class KisTimeoutError(KisConnectionError):
+    """요청 타임아웃
+    
+    서버 응답 대기 중 타임아웃 발생
+    재시도 가능 (Retryable)
+    """
+    pass
+
+
+class KisInternalError(KisException):
+    """내부 오류
+    
+    PyKis 라이브러리 내부에서 발생한 예기치 않은 오류
+    """
+    pass
+
+
+class KisRetryableError(Exception):
+    """재시도 가능 여부를 나타내는 인터페이스
+    
+    이 예외가 발생한 경우, exponential backoff를 사용하여 재시도할 수 있습니다.
+    """
+    max_retries: int = 3
+    initial_delay: float = 1.0  # 초
+    max_delay: float = 60.0  # 초
