@@ -1,0 +1,55 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Python-KIS를 더 좋게 만드는 데 도움을 주셔서 감사합니다! 🎉
+        새로운 기능 제안을 자세히 설명해주세요.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "기능 요약"
+      description: "어떤 기능을 추가하고 싶나요?"
+      placeholder: "예: 실시간 데이터 구독 기능"
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "현재의 문제점"
+      description: "이 기능이 해결할 문제를 설명해주세요."
+      placeholder: |
+        현재 quote() 메서드는 일회성 호출만 가능합니다.
+        실시간 가격 변동을 모니터링할 수 없습니다.
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "제안하는 솔루션"
+      description: "이 기능이 어떻게 작동했으면 좋겠나요?"
+      placeholder: |
+        예: subscribe() 메서드를 추가하여 실시간 데이터를 받을 수 있도록:
+
+        stock = pykis.stock("005930")
+        async for quote in stock.subscribe():
+            print(quote.price)
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "대안"
+      description: "다른 방법으로 이 문제를 해결할 수 있나요? (선택사항)"
+      placeholder: "WebSocket을 직접 사용하면 되지만 복잡합니다."
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "확인 사항"
+      options:
+        - label: "유사한 기능 제안을 검색했습니다"
+          required: false
+        - label: "이 기능이 라이브러리의 범위에 맞다고 생각합니다"
+          required: false

@@ -1,0 +1,27 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Python-KIS 커뮤니티에 오신 것을 환영합니다! 👋
+        자유롭게 의견을 공유해주세요.
+
+  - type: textarea
+    id: message
+    attributes:
+      label: "내용"
+      description: "공유하고 싶은 내용을 작성해주세요."
+      placeholder: |
+        예: "Python-KIS를 사용해서 만든 거래 봇을 공유하고 싶습니다.
+        또는 다른 사용자들의 경험을 듣고 싶습니다."
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "추가 정보"
+      description: "추가로 공유할 정보가 있으신가요? (선택사항)"
+      placeholder: |
+        - 코드 링크
+        - 관련 리소스
+        - 기타 의견
+      required: false
