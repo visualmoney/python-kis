@@ -7,7 +7,7 @@
         "--cov=pykis",
         "--cov-report=term-missing",
         "--cov-report=html:reports/htmlcov",
-        "--cov-report=xml:reports/coverage.xml",    
+        "--cov-report=xml:reports/coverage.xml",
         "--html=reports/test_report.html",
         "--junitxml=reports/junit_report.xml",
         "--self-contained-html",
@@ -27,13 +27,18 @@
     "files.exclude": {
       "**/__pycache__": true,
       "**/.pytest_cache": true,
-      "**/.mypy_cache": true,      
+      "**/.mypy_cache": true,
       "**/*.pyc": true,
       "**/Thumbs.db": true
     },
-    "files.eol": "\n", // 줄 끝 문자를 LF(\n)로 통일합니다.
+    "files.eol": "\n",
     "workbench.remoteIndicator.showExtensionRecommendations": true,
     "plantuml.exportFormat": "png",
     "plantuml.render": "Local",
-
+    "plantuml.jar": "C:/ProgramData/chocolatey/lib/plantuml/tools/plantuml.jar",
+    "plantuml.diagramsRoot": "docs/diagrams/src",
+    "plantuml.exportOutDir": "docs/diagrams/out",
+    "plantuml.jarArgs": [
+       "-charset", "UTF-8"
+    ]
 }
