@@ -8,14 +8,18 @@ on:
 
 jobs:
   test:
-    name: Tests (Linux, Python 3.11)
-    runs-on: ubuntu-latest
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.11', '3.12']
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Install Poetry
         run: pipx install poetry
       - name: Install dependencies
@@ -29,6 +33,10 @@ jobs:
             --cov=pykis --cov-report=xml:reports/coverage.xml \
             --cov-report=html:reports/coverage_html \
             --html=reports/test_report.html --self-contained-html
+      - name: Check coverage threshold
+        run: |
+          poetry run coverage report --fail-under=90
+        continue-on-error: false
       - name: Upload coverage.xml
         uses: actions/upload-artifact@v4
         with:

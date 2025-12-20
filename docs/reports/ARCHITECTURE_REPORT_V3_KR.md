@@ -1,8 +1,8 @@
 # Python-KIS 아키텍처 개선 보고서 v3 (통합본)
 
-**작성일**: 2025년 12월 18일  
-**이전 버전**: v1 (2025-12-10), v2 (2025-12-17)  
-**대상**: 사용자 및 소프트웨어 엔지니어  
+**작성일**: 2025년 12월 18일
+**이전 버전**: v1 (2025-12-10), v2 (2025-12-17)
+**대상**: 사용자 및 소프트웨어 엔지니어
 **목적**: 최신 프로젝트 현황을 반영한 아키텍처 개선 전략 및 실행 계획 제시
 
 ---
@@ -48,7 +48,7 @@
 
 ## 1.1 사용자 관점
 
-**Python-KIS**는 한국투자증권 REST/WebSocket API를 타입 안전하게 래핑한 강력한 라이브러리입니다. 
+**Python-KIS**는 한국투자증권 REST/WebSocket API를 타입 안전하게 래핑한 강력한 라이브러리입니다.
 
 **이상적인 사용자 경험**:
 - ✅ 설치: `pip install python-kis` (1분)
@@ -110,7 +110,7 @@
 
 ## 1.3 핵심 메시지
 
-> **Protocol과 Mixin은 라이브러리 내부 구현의 우아함을 위한 것입니다.**  
+> **Protocol과 Mixin은 라이브러리 내부 구현의 우아함을 위한 것입니다.**
 > **사용자는 이것을 전혀 몰라도 사용할 수 있어야 합니다.**
 
 ---
@@ -343,7 +343,8 @@ tests/                           (~4,000 LOC)
   - 에디터상의 YAML 문법 오류(빨간색 하이라이트) 문제를 해결하여 편집 경험을 개선했습니다.
   - 다음: 모든 예제에 대해 간단한 통합 실행 검증(정적 체크 및 샘플 실행)을 수행하고 변경사항을 커밋/푸시합니다.
 
-### 2025-12-19 Phase 2 Week 1-2 완료
+
+### ✅ 2025-12-19 Phase 2 Week 1-2 완료
 
 - **날짜**: 2025-12-19
 - **완료된 작업 (Phase 2 문서화)**:
@@ -357,27 +358,129 @@ tests/                           (~4,000 LOC)
   - 문서 체계 완성: 아키텍처, 기여 가이드, API Reference, 마이그레이션 가이드
   - 다음: Phase 2 Week 3-4 (CI/CD 파이프라인, 통합 테스트 확대)
 
-### 2025-12-20 Phase 2 Week 3-4 착수
+### ✅ 2025-12-20 Phase 2 Week 3-4 완료
 
-- **CI/CD 파이프라인 (초안 구성)**
-  - `.github/workflows/ci.yml` 추가: Linux/Python 3.11에서 Poetry 설치 → 테스트/커버리지 산출물 업로드 → 태그 릴리스 시 빌드 및 태그 기반 버전 주입(B안)
-  - 커버리지/리포트 아티팩트 업로드: `reports/coverage.xml`, `reports/coverage_html`, `reports/test_report.html`
+#### 1. CI/CD 워크플로우 OS 매트릭스 확장 ✅
 
-- **pre-commit 설정**
-  - `.pre-commit-config.yaml` 추가: 기본 훅(whitespace/eof/yaml/json/toml) + `ruff` lint/format
-  - `pyproject.toml` dev deps에 `pre-commit`, `ruff` 추가
+**목표**: Linux만 지원하던 CI를 Windows, macOS로 확장
 
-- **테스트 스캐폴딩**
-  - 통합 테스트 샘플: `tests/integration/test_examples_run_smoke.py` (환경변수 `RUN_INTEGRATION=1`일 때 예제 스모크 실행)
-  - 성능 테스트 샘플: `tests/performance/test_perf_dummy.py` (`pytest-benchmark` 기반, `RUN_PERF=1`일 때 실행)
-  - dev deps에 `pytest-benchmark` 추가
+**완료 사항**:
+- [x] `.github/workflows/ci.yml`: test job에 3 OS × 2 Python 버전 매트릭스 추가
+  - Matrix: `os: [ubuntu-latest, windows-latest, macos-latest]`
+  - Matrix: `python-version: ['3.11', '3.12']`
+  - 병렬 실행 6 조합으로 테스트 범위 확대
+- [x] `.github/workflows/publish.yml`: build-test job 추가 (3 OS × 2 Python 버전)
+  - pre-release 검증 후 pypi-publish job (Linux만, PyPI 정책)
 
-- **동적 버저닝 문서화**
-  - `docs/developer/VERSIONING.md` 추가: 현행(placeholder 치환)과 개선안(setuptools-scm) 정리, CI 스니펫 포함
+**영향**:
+- ✅ Cross-platform 호환성 검증 가능
+- ✅ Windows/macOS 사용자 버그 조기 발견
 
-- **다음 단계**
-  - CI 매트릭스 확장(Windows/macOS), 커버리지 정책(90%+) 점진 적용
-  - 통합 테스트 10개 추가, 성능 테스트 4개 추가
+#### 2. 커버리지 정책 및 빌드 실패 처리 ✅
+
+**목표**: 90% 이상 커버리지 유지, 미달 시 빌드 실패
+
+**완료 사항**:
+- [x] `.coveragerc` 파일 생성: `fail_under = 90`
+- [x] `.github/workflows/ci.yml`에 "Check coverage threshold" step 추가
+  - `poetry run coverage report --fail-under=90` 실행
+  - 미달 시 `continue-on-error: false`로 빌드 실패 처리
+- [x] `pyproject.toml` `[tool.pytest.ini_options]`에 기존 coverage 설정 유지
+
+**영향**:
+- ✅ 커버리지 저하 자동 감지
+- ✅ 품질 기준선 제도화
+
+#### 3. pre-commit 훅 설정 및 적용 ✅
+
+**목표**: 로컬 및 CI 단계에서 코드 품질 자동화
+
+**완료 사항**:
+- [x] `.pre-commit-config.yaml` 대폭 확장:
+  - **기본 훅**: trailing-whitespace, end-of-file-fixer, mixed-line-ending, check-yaml/json/toml, check-merge-conflict
+  - **코드 포매팅**: ruff (lint + format), black, isort
+  - **코드 개선**: pyupgrade (Python 3.10+ 문법), docformatter (문서화 표준화)
+  - **파일 검증**: check-added-large-files (대용량 파일 방지)
+  - **로컬 훅**: pytest (전체 테스트), coverage report (90%+ 검증)
+- [x] `poetry install --no-interaction --with=dev` 실행 (pre-commit 의존성 설치)
+- [x] `poetry run pre-commit install` 실행 (.git/hooks/pre-commit 설치)
+- [x] `poetry run pre-commit autoupdate` 실행 (모든 훅 최신화)
+
+**최신화된 버전**:
+- pre-commit-hooks: v4.6.0 → v6.0.0
+- ruff: v0.6.9 → v0.14.10
+- black: 24.4.2 → 25.12.0
+- isort: v5.13.2 → v5.10.1
+- pyupgrade: v3.15.2 → v3.21.2
+- docformatter: v1.7.5 → v1.7.7
+
+**영향**:
+- ✅ `git commit` 전 자동 코드 정적 분석 및 포매팅
+- ✅ 불필요한 대용량 파일 커밋 방지
+- ✅ 커버리지 미달 시 로컬 커밋 실패 (조기 감지)
+
+#### 4. 통합/성능 테스트 예시 추가 ✅
+
+**목표**: 기존 스캐폴딩 기반, 실제 사용 시나리오 테스트 추가
+
+**완료 사항**:
+- [x] `tests/integration/test_api_error_handling.py` 신규 작성
+  - **TestAPIErrorHandling** (4 테스트):
+    - `test_unauthorized_error`: 401 에러 처리
+    - `test_rate_limit_error`: 429 에러 처리
+    - `test_server_error_recovery`: 500 에러 재시도 로직
+    - `test_invalid_response_format`: 잘못된 응답 처리
+  - **TestEnvironmentCompatibility** (2 테스트):
+    - `test_virtual_vs_real_domain`: 실전/모의 환경 구분
+    - `test_account_format_validation`: 계좌 형식 검증
+
+- [x] `tests/performance/test_performance_advanced.py` 신규 작성
+  - **TestResponseProcessingPerformance** (3 테스트):
+    - `test_large_json_parsing_speed`: 1000개 종목 JSON 파싱 (100회 반복)
+    - `test_quote_transformation_speed`: 호가 데이터 변환 성능
+    - `test_batch_order_processing_speed`: 100개 주문 배치 처리
+  - **TestMemoryUsage** (2 테스트):
+    - `test_large_dataset_memory`: 1만 개 호가 데이터 메모리 사용량 (< 10MB)
+    - `test_circular_reference_prevention`: 순환 참조 감지
+  - **TestConcurrentAccess** (1 테스트):
+    - `test_concurrent_quote_requests`: 동시 호가 요청 (비동기, ~100ms)
+  - **TestAPILatency** (2 테스트):
+    - `test_token_acquisition_latency`: 토큰 발급 지연 시간
+    - `test_quote_request_latency`: 호가 조회 지연 시간
+
+**테스트 커버리지**:
+- 에러 처리: 401, 429, 500, Invalid Response
+- 환경: 실전/모의
+- 성능: JSON 파싱, 변환, 배치, 메모리, 동시성, 레이턴시
+- 마커: `@pytest.mark.integration`, `@pytest.mark.performance`
+
+**영향**:
+- ✅ 통합 테스트 6개 추가 (기존 25개 → 31개)
+- ✅ 성능 테스트 8개 추가 (기존 35개 → 43개)
+- ✅ 에러 처리 및 에지 케이스 검증 강화
+
+#### 5. 문서 업데이트 (본 파일) ✅
+
+**완료 사항**:
+- [x] Phase 2 Week 3-4 모든 항목 체크 완료 상태로 업데이트
+- [x] 각 작업별 영향 및 결과 기술
+- [x] 테스트 추가 현황 반영
+
+#### ✨ 최종 결과 (Phase 2 Week 3-4)
+
+| 항목 | 목표 | 현황 | 상태 |
+|------|------|------|------|
+| **OS 매트릭스** | 3 OS 테스트 | ✅ 완료 (3 × 2 = 6 조합) | 🟢 |
+| **커버리지 정책** | 90%+ 강제 | ✅ `.coveragerc` + CI 검증 | 🟢 |
+| **pre-commit** | 훅 설정/적용 | ✅ 8개 훅 최신화 + 설치 | 🟢 |
+| **통합 테스트** | 10개 추가 | ✅ 6개 추가 (에러/환경) | 🟡 |
+| **성능 테스트** | 4개 추가 | ✅ 8개 추가 (JSON/변환/메모리/동시성) | 🟢 |
+| **전체 소요시간** | - | **4.5시간** | - |
+
+**다음 단계**:
+- [ ] Phase 3: 커뮤니티 확장 (예제/튜토리얼 추가, 다국어 문서)
+- [ ] 릴리스 자동화 (정식/프리릴리스 분기)
+- [ ] 통합 테스트 추가 4개 (재시도/타임아웃 시나리오)
 
 ## 2.5 타입 힌트 적용 현황
 
@@ -433,8 +536,8 @@ docs/
 └── reports/TEST_COVERAGE_REPORT.md   (438 lines) ✅
 ```
 
-**총 문서**: 6개 핵심 문서  
-**총 라인 수**: 5,800+ 줄  
+**총 문서**: 6개 핵심 문서
+**총 라인 수**: 5,800+ 줄
 **총 단어 수**: 38,000+ 단어
 
 ### 부족한 문서 (긴급 필요)
@@ -525,10 +628,10 @@ __all__ = [
 
 예제:
     >>> from pykis import Quote, Balance, Order
-    >>> 
+    >>>
     >>> def process_quote(quote: Quote) -> None:
     ...     print(f"가격: {quote.price}")
-    
+
     >>> def on_balance_update(balance: Balance) -> None:
     ...     print(f"잔고: {balance.deposits}")
 """
@@ -639,7 +742,7 @@ __all__ = [
     "Order",
     "Chart",
     "Orderbook",
-    
+
     # 추가 타입
     "MarketInfo",
     "TradingHours",
@@ -663,7 +766,7 @@ Python-KIS: 한국투자증권 API 라이브러리
     >>> import yaml
     >>> with open("config.yaml", "r", encoding="utf-8") as f:
     ...     cfg = yaml.safe_load(f)
-    >>> kis = PyKis(id=cfg["id"], account=cfg["account"], 
+    >>> kis = PyKis(id=cfg["id"], account=cfg["account"],
     ...              appkey=cfg["appkey"], secretkey=cfg["secretkey"])
     >>> quote = kis.stock("005930").quote()
     >>> print(f"{quote.name}: {quote.price:,}원")
@@ -686,7 +789,7 @@ Python-KIS: 한국투자증권 API 라이브러리
 
 공개 타입 사용:
     >>> from pykis import Quote, Balance, Order
-    >>> 
+    >>>
     >>> def on_quote(quote: Quote) -> None:
     ...     print(f"새로운 가격: {quote.price}")
 
@@ -745,19 +848,19 @@ from typing import Any
 def __getattr__(name: str) -> Any:
     """
     Deprecated 이름에 대한 하위 호환성 제공
-    
+
     사용자가 deprecated 경로로 import 시:
     - DeprecationWarning 발생
     - pykis.types에서 해당 항목 반환
-    
+
     예:
         >>> from pykis import KisObjectProtocol  # ⚠️ Deprecated
-        DeprecationWarning: 'KisObjectProtocol'은(는) 패키지 루트에서 
-        import하는 것이 deprecated되었습니다. 대신 'from pykis.types 
-        import KisObjectProtocol'을 사용하세요. 이 기능은 v3.0.0에서 
+        DeprecationWarning: 'KisObjectProtocol'은(는) 패키지 루트에서
+        import하는 것이 deprecated되었습니다. 대신 'from pykis.types
+        import KisObjectProtocol'을 사용하세요. 이 기능은 v3.0.0에서
         제거될 예정입니다.
     """
-    
+
     # 내부 Protocol들 (Deprecated)
     _deprecated_internals = {
         # Protocol들
@@ -767,17 +870,17 @@ def __getattr__(name: str) -> Any:
         "KisAccountProtocol": "pykis.types",
         "KisAccountProductProtocol": "pykis.types",
         "KisWebsocketQuotableProtocol": "pykis.types",
-        
+
         # Adapter들 (위험)
         "KisQuotableAccount": "pykis.adapter.account.quote",
         "KisOrderableAccount": "pykis.adapter.account.order",
-        
+
         # 기타
         "TIMEX_TYPE": "pykis.types",
         "COUNTRY_TYPE": "pykis.types",
         # ... 기타 모든 내부 항목
     }
-    
+
     if name in _deprecated_internals:
         module_name = _deprecated_internals[name]
         warnings.warn(
@@ -789,7 +892,7 @@ def __getattr__(name: str) -> Any:
         )
         module = import_module(module_name)
         return getattr(module, name)
-    
+
     raise AttributeError(f"module 'pykis' has no attribute '{name}'")
 
 # ============================================================================
@@ -800,7 +903,7 @@ __all__ = [
     # === 핵심 클래스 ===
     "PyKis",           # 진입점
     "KisAuth",         # 인증
-    
+
     # === 공개 타입 (Type Hint용) ===
     "Quote",           # 시세
     "Balance",         # 잔고
@@ -809,7 +912,7 @@ __all__ = [
     "Orderbook",       # 호가
     "MarketInfo",      # 시장정보
     "TradingHours",    # 장시간
-    
+
     # === 초보자 도구 ===
     "SimpleKIS",            # 단순 인터페이스
     "create_client",        # 자동 클라이언트 생성
@@ -833,13 +936,13 @@ __version__ = "2.1.7"
 일반 사용자는 아래 문서를 따르세요.
 
 누가 사용해야 하나?:
-    
+
     1. 일반 사용자
        └─ from pykis import Quote, Balance, Order 사용
-       
+
     2. Type Hint를 작성하는 개발자
        └─ from pykis import Quote, Balance 사용 (공개 타입)
-       
+
     3. 고급 사용자 / 기여자 (확장)
        ├─ from pykis.types import KisObjectProtocol  (Protocol)
        ├─ from pykis.adapter.* import * (Adapter)
@@ -848,17 +951,17 @@ __version__ = "2.1.7"
 버전 정책:
     - v2.2.0~v2.9.x: 모든 항목 유지 (이 모듈 계속 import 가능)
     - v3.0.0: 이 모듈 제거 (직접 import 불가)
-    
+
     ⚠️ v3.0.0부터 'from pykis.types import ...'은 작동하지 않습니다.
        고급 사용자는 'from pykis.adapter.* import ...' 등으로 변경해야 합니다.
 
 예제 (고급 사용자):
     >>> from pykis.types import KisObjectProtocol
-    >>> 
+    >>>
     >>> class MyCustomObject(KisObjectProtocol):
     ...     def __init__(self, kis):
     ...         self.kis = kis
-    ...     
+    ...
     ...     def my_method(self):
     ...         return self.kis.fetch(...)
 """
@@ -872,7 +975,7 @@ from typing import Protocol, runtime_checkable
 @runtime_checkable
 class KisObjectProtocol(Protocol):
     """모든 API 객체가 준수해야 하는 프로토콜"""
-    
+
     @property
     def kis(self) -> "PyKis":
         """PyKis 인스턴스 참조"""
@@ -881,7 +984,7 @@ class KisObjectProtocol(Protocol):
 @runtime_checkable
 class KisMarketProtocol(Protocol):
     """시장 관련 API 객체의 프로토콜"""
-    
+
     def quote(self) -> "Quote":
         """시세 조회"""
         ...
@@ -889,7 +992,7 @@ class KisMarketProtocol(Protocol):
 @runtime_checkable
 class KisProductProtocol(Protocol):
     """상품(종목) 관련 API 객체의 프로토콜"""
-    
+
     @property
     def symbol(self) -> str:
         """종목 코드"""
@@ -906,7 +1009,7 @@ __all__ = [
     "KisObjectProtocol",
     "KisMarketProtocol",
     "KisProductProtocol",
-    
+
     # ... 기존 모든 항목 유지 (하위 호환성)
 ]
 ```
@@ -932,8 +1035,8 @@ __all__ = [
 ```python
 # 기존 코드 (계속 동작하지만 경고 발생)
 >>> from pykis import KisObjectProtocol
-DeprecationWarning: from pykis import KisObjectProtocol은(는) 
-deprecated되었습니다. 대신 'from pykis.types import KisObjectProtocol'을 
+DeprecationWarning: from pykis import KisObjectProtocol은(는)
+deprecated되었습니다. 대신 'from pykis.types import KisObjectProtocol'을
 사용하세요. 이 기능은 v3.0.0에서 제거될 예정입니다.
 
 # 권장 마이그레이션
@@ -981,13 +1084,13 @@ import warnings
 
 class TestPublicImports:
     """공개 API가 정상적으로 작동하는지 검증"""
-    
+
     def test_core_classes_import(self):
         """핵심 클래스 import 가능"""
         from pykis import PyKis, KisAuth
         assert PyKis is not None
         assert KisAuth is not None
-    
+
     def test_public_types_import(self):
         """공개 타입 import 가능"""
         from pykis import Quote, Balance, Order, Chart, Orderbook
@@ -996,77 +1099,77 @@ class TestPublicImports:
         assert Order is not None
         assert Chart is not None
         assert Orderbook is not None
-    
+
     def test_public_types_module_direct_import(self):
         """public_types 모듈에서 직접 import 가능"""
         from pykis.public_types import Quote, Balance, Order
         assert Quote is not None
         assert Balance is not None
         assert Order is not None
-    
+
     def test_deprecated_imports_warn(self):
         """Deprecated import 시 경고 발생"""
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            
+
             # ⚠️ deprecated 경로
             from pykis import KisObjectProtocol
-            
+
             assert len(w) >= 1
             assert any(issubclass(x.category, DeprecationWarning) for x in w)
             assert any("deprecated" in str(x.message).lower() for x in w)
-    
+
     def test_types_module_still_works(self):
         """types 모듈에서 직접 import도 가능 (고급 사용자)"""
         from pykis.types import KisObjectProtocol, KisMarketProtocol
         assert KisObjectProtocol is not None
         assert KisMarketProtocol is not None
-    
+
     def test_backward_compatibility(self):
         """기존 코드 계속 동작"""
         # v2.0.x 스타일 (여전히 동작)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            
+
             from pykis import PyKis
             from pykis import KisObjectProtocol  # deprecated
-            
+
             assert PyKis is not None
             assert KisObjectProtocol is not None
 
 
 class TestTypeConsistency:
     """같은 타입이 모든 경로에서 동일한지 확인"""
-    
+
     def test_quote_type_consistency(self):
         """Quote 타입이 모든 경로에서 동일"""
         from pykis import Quote as Q1
         from pykis.public_types import Quote as Q2
-        
+
         assert Q1 is Q2
-    
+
     def test_balance_type_consistency(self):
         """Balance 타입이 모든 경로에서 동일"""
         from pykis import Balance as B1
         from pykis.public_types import Balance as B2
-        
+
         assert B1 is B2
 
 
 class TestPublicAPISize:
     """공개 API 크기 확인"""
-    
+
     def test_public_api_exports_minimal(self):
         """공개 API가 20개 이하"""
         from pykis import __all__
-        
+
         assert len(__all__) <= 20, \
             f"공개 API 항목이 너무 많습니다 (현재: {len(__all__)}개, 목표: 20개 이하)"
-    
+
     def test_public_api_contains_essentials(self):
         """공개 API에 필수 항목 포함"""
         from pykis import __all__
-        
+
         essentials = {"PyKis", "KisAuth", "Quote", "Balance", "Order"}
         assert essentials.issubset(set(__all__)), \
             f"필수 항목 누락: {essentials - set(__all__)}"
@@ -1084,7 +1187,7 @@ def test_old_style_import_still_works():
     """v2.0.x 스타일 import 계속 동작"""
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
-        
+
         # 이 코드는 계속 동작해야 함
         from pykis import (
             PyKis,
@@ -1095,7 +1198,7 @@ def test_old_style_import_still_works():
             Chart,
             Orderbook,
         )
-        
+
         assert PyKis is not None
         assert all([KisAuth, Quote, Balance, Order, Chart, Orderbook])
 ```
@@ -1186,7 +1289,7 @@ def test_old_style_import_still_works():
 - [x] 전체 테스트 실행 및 검증 (1시간) ✅ (832 passed, 92% coverage)
 
 **실제 소요 시간**: 9시간
-**결과물**: 
+**결과물**:
 - ✅ public_types.py (TypeAlias 7개: Quote, Balance, Order, Chart, Orderbook, MarketType, TradingHours)
 - ✅ 개선된 __init__.py (minimal public API + deprecation wrapper)
 - ✅ 테스트 (2개: test_public_api_imports.py)
@@ -1296,7 +1399,7 @@ def test_old_style_import_still_works():
 ### 개요
 Phase 1에서 기초를 다졌으므로, Phase 2에서는 문서 완성과 자동화 파이프라인을 구축합니다.
 
-### Week 1-2: 문서화 완성
+### Week 1-2: 문서화 완성 ✅ **준비 중**
 
 **할 일**:
 - [x] `ARCHITECTURE.md` 상세 작성 (8시간) ✅
@@ -1310,22 +1413,25 @@ Phase 1에서 기초를 다졌으므로, Phase 2에서는 문서 완성과 자�
 - [x] 자동 생성 API 레퍼런스 ✅
 - [x] 마이그레이션 경로 명확화 ✅
 
-### Week 3-4: CI/CD 파이프라인 구축
+### Week 3-4: CI/CD 파이프라인 구축 (2025-12-20 진행 중)
 
 **할 일**:
 - [ ] GitHub Actions 설정 (4시간)
   - 자동 테스트
   - 커버리지 리포트
   - 배포 자동화
+  - Tag 기반 릴리스 자동화
 - [ ] Pre-commit hooks 설정 (2시간)
 - [ ] 커버리지 배지 추가 (1시간)
 - [ ] 통합 테스트 확대 (5개 → 15개) (4시간)
 - [ ] 성능 테스트 추가 (5개) (2시간)
 
 **결과물**:
-- [ ] 자동화 파이프라인
+- [ ] 자동화 파이프라인 (GitHub Actions)
+- [ ] Pre-commit hooks
 - [ ] 커버리지 모니터링
-- [ ] 커버리지 90%+ 달성
+- [ ] 확대된 통합 테스트 (15개)
+- [ ] 성능 테스트 (5개)
 
 ---
 
@@ -1607,7 +1713,7 @@ package "개선 (v2.2.0+)" #C8E6C9 {
   file "adapter/*.py" {
     circle "Mixin\n(내부 구현)" as NEW_ADAPTER
   }
-  
+
   NEW_INIT -.->|재export| NEW_PUBLIC
   NEW_TYPES -.->|고급 사용자| NEW_ADAPTER
 }
@@ -1689,14 +1795,14 @@ end note
 title Python-KIS 테스트 전략 (현재 vs 목표)
 
 rectangle "테스트 피라미드" {
-  
+
   ' 현재 상태
   package "Current (94%)" #FFE0B2 {
     rectangle "성능 테스트\n35 tests (5%)" as PERF_NOW #FFB6B6
     rectangle "통합 테스트\n25 tests (3%)" as INTEG_NOW #FFD6A5
     rectangle "단위 테스트\n840 tests (92%)" as UNIT_NOW #C8E6C9
   }
-  
+
   ' 목표 상태
   package "Target (90%+)" #E0BBE4 {
     rectangle "성능 테스트\n50 tests (5%)" as PERF_TARGET #E0BBE4
@@ -1732,7 +1838,7 @@ left to right direction
 rectangle "현재\n154개 export" as NOW {
   rectangle "핵심\n2개\n(PyKis\nKisAuth)" as NOW_CORE
   rectangle "Protocol\n30개" as NOW_PROTO
-  rectangle "Adapter\n40개" as NOW_ADAPTER  
+  rectangle "Adapter\n40개" as NOW_ADAPTER
   rectangle "기타\n82개" as NOW_OTHER
 }
 
@@ -1964,7 +2070,7 @@ Total: 8시간
 ```python
 from pykis.simple import SimpleKIS
 
-kis = SimpleKIS(id="ID", account="ACCOUNT", 
+kis = SimpleKIS(id="ID", account="ACCOUNT",
                 appkey="KEY", secretkey="SECRET")
 
 # Protocol/Mixin 없이도 사용 가능
@@ -2099,7 +2205,7 @@ from pykis.adapter.* import ...             ✅ OK
 ## 6.6 핵심 메시지
 
 > ### "Protocol과 Mixin은 내부 구현의 우아함입니다"
-> 
+>
 > **사용자는 이것을 전혀 몰라도 사용할 수 있어야 합니다.**
 
 ### 현재 상황
@@ -2192,9 +2298,9 @@ Protocol/Mixin 이해 필요 → 진입 장벽 높음 → 초보자 이탈
 
 **보고서 작성 완료**
 
-*작성자: Python-KIS 분석팀*  
-*작성일: 2025년 12월 18일*  
-*버전: V3.0*  
+*작성자: Python-KIS 분석팀*
+*작성일: 2025년 12월 18일*
+*버전: V3.0*
 *최종 검토: 2026년 1월 15일 예정*
 
 ---
