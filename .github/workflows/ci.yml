@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+
+jobs:
+  test:
+    name: Tests (Linux, Python 3.11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install dependencies
+        run: poetry install --no-interaction --with=dev
+      - name: Run unit + integration tests
+        env:
+          PYTEST_ADDOPTS: "-m 'not requires_api'"
+        run: |
+          poetry run pytest \
+            --maxfail=1 -q \
+            --cov=pykis --cov-report=xml:reports/coverage.xml \
+            --cov-report=html:reports/coverage_html \
+            --html=reports/test_report.html --self-contained-html
+      - name: Upload coverage.xml
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: reports/coverage.xml
+      - name: Upload coverage html
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: reports/coverage_html
+      - name: Upload pytest html
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: reports/test_report.html
+  build:
+    if: startsWith(github.ref, 'refs/tags/v')
+    name: Build (tagged releases)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install deps
+        run: poetry install --no-interaction --with=dev
+      - name: Inject version from tag (current B-option)
+        shell: bash
+        run: |
+          tag=${GITHUB_REF_NAME#v}
+          python - <<'PY'
+from pathlib import Path
+import os
+ver=os.environ.get('TAG') or os.environ.get('GITHUB_REF_NAME','v0.0.0')[1:]
+p=Path('pykis/__env__.py')
+s=p.read_text(encoding='utf-8')
+s=s.replace('{{VERSION_PLACEHOLDER}}', ver)
+p.write_text(s, encoding='utf-8')
+print('Set version to', ver)
+PY
+        env:
+          TAG: ${{ github.ref_name }}
+      - name: Build
+        run: poetry build
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*

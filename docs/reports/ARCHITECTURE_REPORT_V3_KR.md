@@ -357,6 +357,28 @@ tests/                           (~4,000 LOC)
   - 문서 체계 완성: 아키텍처, 기여 가이드, API Reference, 마이그레이션 가이드
   - 다음: Phase 2 Week 3-4 (CI/CD 파이프라인, 통합 테스트 확대)
 
+### 2025-12-20 Phase 2 Week 3-4 착수
+
+- **CI/CD 파이프라인 (초안 구성)**
+  - `.github/workflows/ci.yml` 추가: Linux/Python 3.11에서 Poetry 설치 → 테스트/커버리지 산출물 업로드 → 태그 릴리스 시 빌드 및 태그 기반 버전 주입(B안)
+  - 커버리지/리포트 아티팩트 업로드: `reports/coverage.xml`, `reports/coverage_html`, `reports/test_report.html`
+
+- **pre-commit 설정**
+  - `.pre-commit-config.yaml` 추가: 기본 훅(whitespace/eof/yaml/json/toml) + `ruff` lint/format
+  - `pyproject.toml` dev deps에 `pre-commit`, `ruff` 추가
+
+- **테스트 스캐폴딩**
+  - 통합 테스트 샘플: `tests/integration/test_examples_run_smoke.py` (환경변수 `RUN_INTEGRATION=1`일 때 예제 스모크 실행)
+  - 성능 테스트 샘플: `tests/performance/test_perf_dummy.py` (`pytest-benchmark` 기반, `RUN_PERF=1`일 때 실행)
+  - dev deps에 `pytest-benchmark` 추가
+
+- **동적 버저닝 문서화**
+  - `docs/developer/VERSIONING.md` 추가: 현행(placeholder 치환)과 개선안(setuptools-scm) 정리, CI 스니펫 포함
+
+- **다음 단계**
+  - CI 매트릭스 확장(Windows/macOS), 커버리지 정책(90%+) 점진 적용
+  - 통합 테스트 10개 추가, 성능 테스트 4개 추가
+
 ## 2.5 타입 힌트 적용 현황
 
 | 카테고리 | 적용률 | 평가 |
