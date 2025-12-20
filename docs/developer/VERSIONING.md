@@ -121,6 +121,63 @@ __version__ = _dist_version("python-kis")
 - 옵션 C를 채택하는 경우, `[build-system]`의 `setuptools-dynamic` 경로는 제거하여 단일 경로(Poetry)만 사용합니다.
 - 문서에 "버전은 Git 태그로 관리한다"를 명시하고, 태그 없이 배포 금지 규칙을 CI로 enforce 합니다.
 
+---
+
+### 옵션 D: Poetry 호환(플러그인 없이), 태그→PEP 440 정규화
+
+플러그인 없이 CI에서 Git 태그를 PEP 440 규칙으로 정규화하여 `poetry version`에 주입하는 방법입니다.
+
+**원칙**:
+- Git 태그를 단일 진실 공급원(SoT)으로 사용
+- 태그 표기 → PEP 440 매핑 규칙을 CI 스크립트로 정의
+- 런타임 버전은 배포 메타에서 읽음 (`importlib.metadata.version("python-kis")`)
+
+**태그→PEP 440 매핑 예시**:
+- `v1.2.3` → `1.2.3`
+- `v1.2.3-rc.1` → `1.2.3rc1`
+- `v1.2.3-beta.2` → `1.2.3b2`
+- `v1.2.3-alpha.1` → `1.2.3a1`
+- `v1.2.3-dev.4` → `1.2.3.dev4`
+
+**CI 단계(샘플)**:
+
+```yaml
+jobs:
+  build:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Set version from Git tag (PEP 440 normalize)
+        shell: bash
+        run: |
+          raw="${GITHUB_REF_NAME#v}"
+          pep="${raw//-rc./rc}"
+          pep="${pep//-alpha./a}"
+          pep="${pep//-beta./b}"
+          pep="${pep//-dev./.dev}"
+          echo "Normalized tag: $pep"
+          poetry version "$pep"
+      - name: Install deps
+        run: poetry install --no-interaction --with=dev
+      - name: Build
+        run: poetry build
+```
+
+**장점**:
+- Poetry만으로 버전 주입(플러그인 비의존), CI 제어 용이, PEP 440 준수
+
+**단점**:
+- 매핑 스크립트 유지 필요, 비태그 커밋의 버전 정책(예: 빌드 금지 또는 `.devN`) 별도 정의 필요
+
+**도입 시 권장 조치**:
+- `pykis/__env__.py`는 `importlib.metadata.version()` 기반으로 단순화
+- 태그 없는 빌드는 릴리스 배포 금지, 필요시 프리뷰 빌드 규칙 문서화
+
 ## 구현 가이드
 
 ### A안 (setuptools-scm 전환) 구현 체크리스트
