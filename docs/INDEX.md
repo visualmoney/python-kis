@@ -1,8 +1,9 @@
 # 문서 인덱스 및 저장소 구조
 
-**작성일**: 2025-12-17  
-**목적**: 프로젝트 문서 및 리소스 중앙 집중식 관리  
-**버전**: 1.0
+**작성일**: 2025-12-17
+**최종 업데이트**: 2025-12-20
+**목적**: 프로젝트 문서 및 리소스 중앙 집중식 관리
+**버전**: 1.1 (Phase 4 완료 반영)
 
 ---
 
@@ -16,26 +17,42 @@ docs/
 ├── developer/                         # 개발자 가이드
 │   └── DEVELOPER_GUIDE.md            # 개발 가이드 및 설정
 ├── user/                             # 사용자 문서
-│   └── USER_GUIDE.md                 # 사용자 가이드
-├── guidelines/                        # 📌 새로 추가: 개발 규칙 및 가이드
+│   ├── ko/                            # 한국어 문서
+│   │   ├── README.md                  # 한국어 프로젝트 개요 ✅
+│   │   ├── QUICKSTART.md              # 한국어 빠른 시작 ✅
+│   │   └── FAQ.md                     # 한국어 FAQ ✅
+│   └── en/                            # 영어 문서
+│       ├── README.md                  # English Project Overview ✅
+│       ├── QUICKSTART.md              # English Quick Start ✅
+│       └── FAQ.md                     # English FAQ ✅
+├── guidelines/                        # 📌 개발 규칙 및 가이드
 │   ├── GUIDELINES_001_TEST_WRITING.md   # 테스트 코드 작성 표준
-│   ├── GUIDELINES_002_*.md              # (추후 추가)
+│   ├── MULTILINGUAL_SUPPORT.md          # 다국어 지원 정책 ✅
+│   ├── REGIONAL_GUIDES.md               # 지역별 설정 가이드 ✅
+│   ├── API_STABILITY_POLICY.md          # API 안정성 정책 ✅
+│   ├── GITHUB_DISCUSSIONS_SETUP.md      # GitHub Discussions 설정 ✅
+│   ├── VIDEO_SCRIPT.md                  # 튜토리얼 영상 스크립트 ✅
 │   └── README.md                        # 가이드라인 목록
-├── prompts/                           # 📌 새로 추가: 프롬프트 기록
-│   ├── PROMPT_001_TEST_COVERAGE_AND_TESTS.md  # 첫 번째 프롬프트 기록
-│   ├── PROMPT_002_*.md                 # (추후 추가)
-│   └── README.md                       # 프롬프트 인덱스
-├── dev_logs/                          # 📌 새로 추가: 개발 일지
-│   ├── DEV_LOG_2025_12_17.md          # 2025-12-17 개발 일지
+├── prompts/                           # 프롬프트 기록
+│   ├── PROMPT_001_TEST_COVERAGE_AND_TESTS.md  # Phase 1 테스트 개선 ✅
+│   ├── 2025-12-20_phase4_week1_prompt.md      # Phase 4 Week 1 글로벌 확장 ✅
+│   ├── 2025-12-20_phase4_week3_script_discussions_prompt.md  # Phase 4 Week 3 ✅
+│   └── README.md                       #개발 일지
+│   ├── 2025-12-18_phase1_week1_complete.md    # Phase 1 완료 ✅
+│   ├── 2025-12-20_phase4_week1_global_docs_devlog.md  # Phase 4 Week 1 ✅
+│   ├── 2025-12-20_phase4_week3_devlog.md      # Phase 4 Week 3 ✅ 개발 일지
 │   ├── DEV_LOG_2025_12_*.md           # (주간/월간 일지)
 │   └── README.md                       # 일지 인덱스
-├── reports/                           # 분석 보고서
-│   ├── ARCHITECTURE_REPORT_V2_KR.md   # 종합 아키텍처 분석 보고서
+├── reports/                 3_KR.md   # 최신 아키텍처 분석 보고서 ✅
+│   ├── PHASE4_WEEK1_COMPLETION_REPORT.md    # Phase 4 Week 1 완료 ✅
+│   ├── PHASE4_WEEK3_COMPLETION_REPORT.md    # Phase 4 Week 3 완료 ✅
+│   ├── PHASE2_WEEK3-4_STATUS.md       # Phase 2 Week 3-4 현황 ✅
 │   ├── FINAL_REPORT.md                # 최종 완료 보고서
 │   ├── TASK_PROGRESS.md               # 작업 진행 현황
 │   ├── CODE_REVIEW.md                 # 코드 리뷰 결과
-│   ├── TEST_COVERAGE_REPORT.md        # 테스트 커버리지 보고서 (구)
-│   ├── test_reports/                  # 📌 새로 추가: 테스트 보고서
+│   ├── TEST_COVERAGE_REPORT.md        # 테스트 커버리지 보고서
+│   ├── test_reports/                  # 테스트 보고서
+│   │   ├── TEST_REPORT_2025_12_17.md  # 2025-12-17 테스트 보고서 ✅
 │   │   ├── TEST_REPORT_2025_12_17.md  # 2025-12-17 테스트 보고서
 │   │   └── TEST_REPORT_2025_12_*.md   # (주간 보고서)
 │   ├── README.md                       # 보고서 목록
@@ -47,8 +64,12 @@ docs/
 ```
 
 ---
-
-## 📚 주요 문서 목록
+완료 |
+| [MULTILINGUAL_SUPPORT.md](c:\Python\github.com\python-kis\docs\guidelines\MULTILINGUAL_SUPPORT.md) | 다국어 지원 정책 및 프로세스 | 개발팀 | ✅ 완료 |
+| [REGIONAL_GUIDES.md](c:\Python\github.com\python-kis\docs\guidelines\REGIONAL_GUIDES.md) | 한국/글로벌 환경 설정 가이드 | 개발자 | ✅ 완료 |
+| [API_STABILITY_POLICY.md](c:\Python\github.com\python-kis\docs\guidelines\API_STABILITY_POLICY.md) | API 버전 정책 및 마이그레이션 | 사용자/개발자 | ✅ 완료 |
+| [GITHUB_DISCUSSIONS_SETUP.md](c:\Python\github.com\python-kis\docs\guidelines\GITHUB_DISCUSSIONS_SETUP.md) | GitHub Discussions 설정 가이드 | 관리자 | ✅ 완료 |
+| [VIDEO_SCRIPT.md](c:\Python\github.com\python-kis\docs\guidelines\VIDEO_SCRIPT.md) | 튜토리얼 영상 스크립트 (5분) | 마케팅팀 | ✅ 완료
 
 ### 규칙 & 가이드라인 (Guidelines)
 
@@ -57,8 +78,9 @@ docs/
 | [GUIDELINES_001_TEST_WRITING.md](c:\Python\github.com\python-kis\docs\guidelines\GUIDELINES_001_TEST_WRITING.md) | 테스트 코드 작성 표준 | 테스터/개발자 | ✅ 작성됨 |
 | GUIDELINES_002_*.md | (추후 작성) | - | ⏳ 계획 중 |
 
-### 프롬프트 기록 (Prompts)
-
+### 프롬프트 기록 (Prompts)| 874개 테스트, 94% 커버리지 | ✅ 완료 |
+| [2025-12-20_phase4_week1_prompt.md](c:\Python\github.com\python-kis\docs\prompts\2025-12-20_phase4_week1_prompt.md) | 글로벌 문서 및 다국어 확장 | 3,500줄 문서화 | ✅ 완료 |
+| [2025-12-20_phase4_week3_script_discussions_prompt.md](c:\Python\github.com\python-kis\docs\prompts\2025-12-20_phase4_week3_script_discussions_prompt.md) | 영상 스크립트 & Discussions | 1,390줄 문서화 | ✅ 완료
 | 문서 | 주제 | 결과 | 상태 |
 |------|------|------|------|
 | [PROMPT_001_TEST_COVERAGE_AND_TESTS.md](c:\Python\github.com\python-kis\docs\prompts\PROMPT_001_TEST_COVERAGE_AND_TESTS.md) | 테스트 커버리지 개선 + test_daily_chart/test_info 구현 | 12개 테스트 추가 | ✅ 완료 |
@@ -67,21 +89,25 @@ docs/
 ### 개발 일지 (Development Logs)
 
 | 문서 | 기간 | 작업 내용 | 상태 |
-|------|------|---------|------|
-| [DEV_LOG_2025_12_17.md](c:\Python\github.com\python-kis\docs\dev_logs\DEV_LOG_2025_12_17.md) | 2025-12-10 ~ 12-17 | 테스트 개선 & 문서화 | ✅ 완료 |
+|--2025-12-18_phase1_week1_complete.md](c:\Python\github.com\python-kis\docs\dev_logs\2025-12-18_phase1_week1_complete.md) | Phase 1 | API 리팩토링, 문서화 | ✅ 완료 |
+| [2025-12-20_phase4_week1_global_docs_devlog.md](c:\Python\github.com\python-kis\docs\dev_logs\2025-12-20_phase4_week1_global_docs_devlog.md) | Phase 4 Week 1 | 글로벌 문서 (3,500줄) | ✅ 완료 |
+| [2025-12-20_phase4_week3_devlog.md](c:\Python\github.com\python-kis\docs\dev_logs\2025-12-20_phase4_week3_devlog.md) | Phase 4 Week 3 | 영상 스크립트 & Discussions | ✅ 완료python-kis\docs\dev_logs\DEV_LOG_2025_12_17.md) | 2025-12-10 ~ 12-17 | 테스트 개선 & 문서화 | ✅ 완료 |
 | DEV_LOG_2025_12_*.md | (매주 업데이트) | - | ⏳ 계획 중 |
 
 ### 테스트 보고서 (Test Reports)
 
 | 문서 | 일자 | 테스트 결과 | 커버리지 | 상태 |
-|------|------|-----------|---------|------|
-| [TEST_REPORT_2025_12_17.md](c:\Python\github.com\python-kis\docs\reports\test_reports\TEST_REPORT_2025_12_17.md) | 2025-12-17 | 840 pass, 5 skip | 94% (unit) | ✅ 완료 |
+|------|------|-----------|---------|------|74 pass, 19 skip | 89.7% | ✅ 완료 |
+| [PHASE2_WEEK3-4_STATUS.md](c:\Python\github.com\python-kis\docs\reports\PHASE2_WEEK3-4_STATUS.md) | 2025-12-20 | CI/CD 완성, 통합 테스트 추가 | 89.7% | ✅ 완료 |
+| [PHASE4_WEEK1_COMPLETION_REPORT.md](c:\Python\github.com\python-kis\docs\reports\PHASE4_WEEK1_COMPLETION_REPORT.md) | 2025-12-20 | 영문 문서 3개 + 가이드라인 3개 | - | ✅ 완료 |
+| [PHASE4_WEEK3_COMPLETION_REPORT.md](c:\Python\github.com\python-kis\docs\reports\PHASE4_WEEK3_COMPLETION_REPORT.md) | 2025-12-20 | 영상 스크립트 + Discussions | - | ✅ 완료on-kis\docs\reports\test_reports\TEST_REPORT_2025_12_17.md) | 2025-12-17 | 840 pass, 5 skip | 94% (unit) | ✅ 완료 |
 | TEST_REPORT_2025_12_*.md | (매주 업데이트) | - | - | ⏳ 계획 중 |
 
 ### 종합 보고서 (Main Reports)
-
-| 문서 | 목적 | 최종 수정 | 상태 |
-|------|------|---------|------|
+3_KR.md](c:\Python\github.com\python-kis\docs\reports\ARCHITECTURE_REPORT_V3_KR.md) | 종합 아키텍처 분석 | 2025-12-20 | ✅ 최신 |
+| [PHASE4_WEEK1_COMPLETION_REPORT.md](c:\Python\github.com\python-kis\docs\reports\PHASE4_WEEK1_COMPLETION_REPORT.md) | Phase 4 Week 1 완료 현황 | 2025-12-20 | ✅ 완료 |
+| [PHASE4_WEEK3_COMPLETION_REPORT.md](c:\Python\github.com\python-kis\docs\reports\PHASE4_WEEK3_COMPLETION_REPORT.md) | Phase 4 Week 3 완료 현황 | 2025-12-20 | ✅ 완료 |
+| [PHASE2_WEEK3-4_STATUS.md](c:\Python\github.com\python-kis\docs\reports\PHASE2_WEEK3-4_STATUS.md) | Phase 2 Week 3-4 완료 현황 | 2025-12-20 | ✅ 완료
 | [ARCHITECTURE_REPORT_V2_KR.md](c:\Python\github.com\python-kis\docs\reports\ARCHITECTURE_REPORT_V2_KR.md) | 종합 아키텍처 분석 | 2025-12-17 | ✅ 업데이트됨 |
 | [TODO_LIST_2025_12_17.md](c:\Python\github.com\python-kis\docs\reports\TODO_LIST_2025_12_17.md) | 다음 할일 목록 | 2025-12-17 | ✅ 생성됨 |
 | FINAL_REPORT.md | 최종 완료 보고서 | - | ⏳ 계획 중 |
@@ -127,38 +153,54 @@ docs/
 2. **[TEST_REPORT_2025_12_17.md](c:\Python\github.com\python-kis\docs\reports\test_reports\TEST_REPORT_2025_12_17.md)** 모니터링
    - 테스트 커버리지 추이
    - 품질 지표 확인
-   - 위험 영역 식별
+   - 위험 영역 식별 (2025-12-20)
 
----
+### Phase 진행도
 
-## 📊 현재 상태 대시보드
+```
+Phase 1: ✅ 완료 (2025-12-18)
+  └─ API 리팩토링, 테스트 강화
+
+Phase 2: ✅ 완료 (2025-12-20)
+  ├─ Week 1-2: 문서화 (4,260줄)
+  └─ Week 3-4: CI/CD 파이프라인
+
+Phase 3: ⏳ 준비 중
+  └─ 커뮤니티 확장 (예제/튜토리얼)
+
+Phase 4: ✅ 완료 (2025-12-20)
+  ├─ Week 1: 글로벌 문서 (3,500줄)
+  └─ Week 3: 영상 & Discussions (1,390줄)
+```
 
 ### 테스트 현황
 
 ```
-테스트 통과:        840개 ✅
-테스트 스킵:        5개 ⏳
-경고:               7개 ⚠️
-커버리지 (단위):    94% 🟢
-커버리지 (전체):    60.27% 🔴
+테스트 통과:        874개 ✅
+테스트 스킵:        19개 ⏳
+커버리지 (단위):    89.7% 🟡 (목표 90% 근접)
+통합 테스트:        31개 ✅
+성능 테스트:        43개 ✅
 ```
 
 ### 문서화 현황
 
 ```
-프롬프트 기록:      1개 ✅
-가이드라인:         1개 ✅
-개발 일지:          1개 ✅
-테스트 보고서:      1개 ✅
-할일 목록:          1개 ✅
-
-총 새 문서:         5개 (2025-12-17)
+총 신규 문서:       20+개 ✅
+가이드라인:         6개 ✅
+개발 일지:          3개 ✅
+완료 보고서:        4개 ✅
+영문 문서:          3개 ✅ (국제 확대)
 ```
 
 ### 아키텍처 평가
 
 ```
 설계:      4.5/5.0 🟢
+코드 품질: 4.0/5.0 🟢
+테스트:    4.3/5.0 🟢 (개선됨)
+문서:      4.7/5.0 🟢 (대폭 개선)
+글로벌화: 4.5/5.0 🟢 (새로 추가)
 코드 품질: 4.0/5.0 🟢
 테스트:    3.0/5.0 🟡
 문서:      4.5/5.0 🟢
@@ -315,30 +357,47 @@ docs/new_category/
 ## 🔗 상호 참조 지도
 
 ```
-프롬프트
-  ↓
-  └─→ 가이드라인 (학습)
-  
-개발 일지
-  ↓
-  └─→ 테스트 보고서 (추적)
-  
-할일 목록
-  ↓
-  └─→ 아키텍처 보고서 (계획)
-  
-모두
-  ↓
-  └─→ README (중앙 허브)
-```
+프롬프🎯 다음 단계
+
+### Phase 3 (1월 예정)
+- [ ] 커뮤니티 확장 (예제/튜토리얼 추가)
+- [ ] 예제 Jupyter Notebook 작성
+- [ ] 기여자 커뮤니티 구축
+- [ ] 피드백 수집 및 반영
+
+### 지속적 유지보수
+- [ ] 주간 테스트 리포트 생성
+- [ ] 월간 개발 일지 작성
+- [ ] 분기별 아키텍처 리뷰
+- [ ] 버전별 마이그레이션 가이드 업데이트
 
 ---
 
 ## 📞 연락처 및 기여
 
-**관리자**: AI Assistant (GitHub Copilot)  
-**마지막 업데이트**: 2025-12-17  
-**다음 리뷰**: 2025-12-24  
+**관리자**: Claude AI (GitHub Copilot)
+**마지막 업데이트**: 2025-12-20
+**다음 리뷰**: 2025-12-27 (Phase 3 시작)
+
+**기여하려면**:
+1. 새 문서 작성 시 이 인덱스 업데이트
+2. 깨진 링크 보고
+3. 제안사항 또는 오류 기록
+
+---
+
+**상태**: 🟢 활성 (Phase 4 완료)
+**버전**: 1.1
+**라이센스**: MIT
+**커밋**: Git commit 완료 (GitHub Discussions 템플릿)
+
+---
+
+## 📞 연락처 및 기여
+
+**관리자**: AI Assistant (GitHub Copilot)
+**마지막 업데이트**: 2025-12-17
+**다음 리뷰**: 2025-12-24
 
 **기여하려면**:
 1. 새 문서 작성 시 이 인덱스 업데이트
@@ -347,7 +406,6 @@ docs/new_category/
 
 ---
 
-**상태**: 🟢 활성  
-**버전**: 1.0  
+**상태**: 🟢 활성
+**버전**: 1.0
 **라이센스**: MIT
-
