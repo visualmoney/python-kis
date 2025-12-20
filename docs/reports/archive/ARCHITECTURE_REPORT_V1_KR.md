@@ -1,7 +1,7 @@
 # Python-KIS 아키텍처 개선 보고서
 
-**작성일**: 2025년 12월 10일  
-**대상**: 사용자 및 소프트웨어 엔지니어  
+**작성일**: 2025년 12월 10일
+**대상**: 사용자 및 소프트웨어 엔지니어
 **목적**: python-kis 라이브러리의 개선 방향 제시 및 실행 계획 수립
 
 ---
@@ -75,7 +75,7 @@ python-kis는 한국투자증권 REST/WebSocket API를 타입 안전하게 래�
    ```
    pykis/__init__.py: 150개 이상 export
    pykis/types.py:    동일한 타입 재정의
-   
+
    결과:
    ├── 유지보수 이중 부담
    ├── IDE에서 혼란 (같은 타입이 여러 곳에서 import 가능)
@@ -224,11 +224,11 @@ examples/
 
 class SimpleKIS:
     """Protocol, Mixin 없이 간단하게 사용"""
-    
+
     def __init__(self, id: str, account: str, appkey: str, secretkey: str):
-        self._kis = PyKis(id=id, account=account, 
+        self._kis = PyKis(id=id, account=account,
                           appkey=appkey, secretkey=secretkey)
-    
+
     def get_price(self, symbol: str) -> dict:
         """시세 조회 (딕셔너리 반환)"""
         quote = self._kis.stock(symbol).quote()
@@ -238,14 +238,14 @@ class SimpleKIS:
             "change": quote.change,
             "change_rate": quote.change_rate
         }
-    
+
     def get_balance(self) -> dict:
         """잔고 조회"""
         balance = self._kis.account().balance()
         return {
             "cash": balance.deposits.get("KRW").amount,
             "stocks": [
-                {"symbol": s.symbol, "name": s.name, 
+                {"symbol": s.symbol, "name": s.name,
                  "qty": s.qty, "price": s.price}
                 for s in balance.stocks
             ]
@@ -295,7 +295,7 @@ def mock_kis_api():
     """API 응답 Mock"""
     with responses.RequestsMock() as rsps:
         # 토큰 발급
-        rsps.add(responses.POST, 
+        rsps.add(responses.POST,
                  "https://openapi.koreainvestment.com:9443/oauth2/tokenP",
                  json={"access_token": "mock_token"})
         # 시세 조회
@@ -307,17 +307,17 @@ def mock_kis_api():
 # tests/integration/api/test_order_flow.py
 def test_complete_order_flow(mock_kis_api):
     """전체 주문 플로우 테스트"""
-    kis = PyKis(id="test", account="12345678-01", 
+    kis = PyKis(id="test", account="12345678-01",
                 appkey="test", secretkey="test")
-    
+
     # 1. 시세 조회
     quote = kis.stock("005930").quote()
     assert quote.price > 0
-    
+
     # 2. 매수 가능 금액 조회
     amount = kis.account().orderable_amount("005930")
     assert amount.orderable_qty > 0
-    
+
     # 3. 주문 실행 (Mock)
     order = kis.stock("005930").buy(price=70000, qty=1)
     assert order.order_number is not None
@@ -369,7 +369,7 @@ __all__ = [
 
 Example:
     >>> from pykis import Quote, Balance, Order
-    >>> 
+    >>>
     >>> def process_quote(quote: Quote) -> None:
     ...     print(f"가격: {quote.price}")
 """
@@ -401,7 +401,7 @@ Orderbook: TypeAlias = _KisOrderbook
 
 __all__ = [
     "Quote",
-    "Balance", 
+    "Balance",
     "Order",
     "Chart",
     "Orderbook",
@@ -456,7 +456,7 @@ from importlib import import_module
 def __getattr__(name: str):
     """
     Deprecated된 이름에 대한 하위 호환성 제공
-    
+
     예: from pykis import KisObjectProtocol
     → DeprecationWarning 발생 후 pykis.types.KisObjectProtocol 반환
     """
@@ -468,7 +468,7 @@ def __getattr__(name: str):
         "KisAccountProtocol": "pykis.types",
         # ... 기타 deprecated 항목
     }
-    
+
     if name in _deprecated_internals:
         module_name = _deprecated_internals[name]
         warnings.warn(
@@ -480,7 +480,7 @@ def __getattr__(name: str):
         )
         module = import_module(module_name)
         return getattr(module, name)
-    
+
     raise AttributeError(f"module 'pykis' has no attribute '{name}'")
 
 # === 공개 API ===
@@ -488,14 +488,14 @@ __all__ = [
     # 핵심 클래스
     "PyKis",
     "KisAuth",
-    
+
     # 공개 타입
     "Quote",
     "Balance",
     "Order",
     "Chart",
     "Orderbook",
-    
+
     # 초보자 도구 (선택적)
     "SimpleKIS",
     "create_client",
@@ -525,7 +525,7 @@ __version__ = "2.1.7"
 
 Example (고급):
     >>> from pykis.types import KisObjectProtocol
-    >>> 
+    >>>
     >>> class MyCustomObject(KisObjectProtocol):
     ...     def __init__(self, kis):
     ...         self.kis = kis
@@ -568,8 +568,8 @@ touch pykis/public_types.py
 ```python
 # 사용자가 deprecated 경로 사용 시
 >>> from pykis import KisObjectProtocol
-DeprecationWarning: 'KisObjectProtocol'은(는) 패키지 루트에서 
-import하는 것이 deprecated되었습니다. 대신 'from pykis.types 
+DeprecationWarning: 'KisObjectProtocol'은(는) 패키지 루트에서
+import하는 것이 deprecated되었습니다. 대신 'from pykis.types
 import KisObjectProtocol'을 사용하세요.
 
 # 권장 사용법 안내
@@ -595,7 +595,7 @@ import warnings
 def test_public_imports_work():
     """공개 API가 정상적으로 import되는지 확인"""
     from pykis import PyKis, KisAuth, Quote, Balance, Order
-    
+
     assert PyKis is not None
     assert KisAuth is not None
     assert Quote is not None
@@ -606,9 +606,9 @@ def test_deprecated_imports_warn():
     """Deprecated import 시 경고가 발생하는지 확인"""
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        
+
         from pykis import KisObjectProtocol
-        
+
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
         assert "deprecated" in str(w[0].message).lower()
@@ -616,14 +616,14 @@ def test_deprecated_imports_warn():
 def test_types_module_still_works():
     """types 모듈에서 직접 import도 가능한지 확인"""
     from pykis.types import KisObjectProtocol, KisMarketProtocol
-    
+
     assert KisObjectProtocol is not None
     assert KisMarketProtocol is not None
 
 def test_public_types_module():
     """public_types 모듈이 제대로 동작하는지 확인"""
     from pykis.public_types import Quote, Balance, Order
-    
+
     assert Quote is not None
     assert Balance is not None
     assert Order is not None
@@ -778,7 +778,7 @@ def test_public_types_module():
 
 ### 핵심 메시지
 
-> **Protocol과 Mixin은 라이브러리 내부 구현의 우아함을 위한 것입니다.**  
+> **Protocol과 Mixin은 라이브러리 내부 구현의 우아함을 위한 것입니다.**
 > **사용자는 이것을 전혀 몰라도 사용할 수 있어야 합니다.**
 
 ### 즉시 실행 권장 사항
@@ -860,5 +860,5 @@ Phase 4 (2개월+): 고급 기능 + 커뮤니티
 
 **문서 끝**
 
-*작성자: Python-KIS 프로젝트 팀*  
+*작성자: Python-KIS 프로젝트 팀*
 *최종 수정: 2025년 12월 10일*

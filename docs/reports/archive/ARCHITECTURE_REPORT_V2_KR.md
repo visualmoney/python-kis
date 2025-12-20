@@ -187,11 +187,11 @@ class KisObjectProtocol(Protocol):
 # pykis/adapter/account/order.py
 class KisOrderableAccount:
     """계좌에 주문 기능 추가"""
-    
+
     def buy(self, symbol: str, price: int, qty: int) -> KisOrder:
         """매수 주문"""
         ...
-    
+
     def sell(self, symbol: str, price: int, qty: int) -> KisOrder:
         """매도 주문"""
         ...
@@ -214,7 +214,7 @@ class KisOrderableAccount:
 # pykis/responses/dynamic.py
 class KisDynamic:
     """API 응답을 동적으로 타입이 지정된 객체로 변환"""
-    
+
     def __getattr__(self, name: str):
         """속성 동적 접근"""
         ...
@@ -233,11 +233,11 @@ class KisDynamic:
 # pykis/event/handler.py
 class KisEventHandler:
     """이벤트 핸들러 (Pub-Sub 패턴)"""
-    
+
     def subscribe(self, callback: EventCallback) -> KisEventTicket:
         """이벤트 구독"""
         ...
-    
+
     def emit(self, event: KisEventArgs):
         """이벤트 발생"""
         ...
@@ -480,8 +480,8 @@ docs/
     └── TEST_COVERAGE_REPORT.md  (438 lines) ✅
 ```
 
-**총 문서**: 6개 핵심 문서  
-**총 라인 수**: 5,800+ 줄  
+**총 문서**: 6개 핵심 문서
+**총 라인 수**: 5,800+ 줄
 **총 단어 수**: 38,000+ 단어
 
 ### 5.2 문서 품질 평가
@@ -574,14 +574,14 @@ __all__ = [
     # 핵심 클래스
     "PyKis",
     "KisAuth",
-    
+
     # 공개 타입 (Type Hint용)
     "Quote",
     "Balance",
     "Order",
     "Chart",
     "Orderbook",
-    
+
     # 초보자 도구
     "SimpleKIS",
     "create_client",
@@ -842,7 +842,7 @@ tests/integration/
 │  ├─ 테스트 커버리지      ├─ 초보자 진입 장벽
 │  ├─ __init__.py 정리     ├─ 통합 테스트
 │  └─ types.py 중복        └─ 예제 코드
-│  
+│
 │  🟢 낮음                 🟢 개선 권장
 │  ├─ 성능 최적화          ├─ CONTRIBUTING.md
 │  └─ 추가 기능            ├─ CHANGELOG.md
@@ -906,7 +906,7 @@ tests/integration/
 
 ##### a) KisObject.transform_() 패턴 발견
 
-**이전 인식**: "KisAPIResponse 상속 클래스는 직접 인스턴스화 불가"  
+**이전 인식**: "KisAPIResponse 상속 클래스는 직접 인스턴스화 불가"
 **실제 상황**: `KisObject.transform_()` 메서드로 API 응답 데이터 자동 변환
 
 ```python
@@ -924,7 +924,7 @@ result = KisDomesticDailyChartBar.transform_(mock_response.__data__)
 
 ##### b) Response Mock 완전성 표준화
 
-**문제**: 불완전한 Mock으로 KisAPIError 초기화 실패  
+**문제**: 불완전한 Mock으로 KisAPIError 초기화 실패
 **해결**: 표준 Mock 구조 수립
 
 ```python
@@ -1167,9 +1167,9 @@ examples/
 
 **보고서 끝**
 
-*작성자: Python-KIS 프로젝트 분석팀*  
-*작성일: 2025년 12월 17일*  
-*버전: 1.0*  
+*작성자: Python-KIS 프로젝트 분석팀*
+*작성일: 2025년 12월 17일*
+*버전: 1.0*
 *다음 리뷰: 2026년 1월 16일*
 
 **주요 변경내용 (2025-12-17)**

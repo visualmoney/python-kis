@@ -32,6 +32,8 @@
       "**/Thumbs.db": true
     },
     "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
     "workbench.remoteIndicator.showExtensionRecommendations": true,
     "plantuml.exportFormat": "png",
     "plantuml.render": "Local",
