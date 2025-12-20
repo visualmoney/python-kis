@@ -1,9 +1,6 @@
 [build-system]
-requires = [
-    "setuptools>=71.1",
-    "setuptools-scm>=8.1"
-]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "python-kis"
@@ -53,16 +50,12 @@ dependencies = [
     "typing-extensions",
     "python-dotenv (>=1.2.1,<2.0.0)"
 ]
-dynamic = [
-    "version",
-]
+dynamic = []
+
 [project.urls]
 "Bug Tracker" = "https://github.com/Soju06/python-kis/issues"
 "Documentation" = "https://github.com/Soju06/python-kis/wiki/Tutorial"
 "Source Code" = "https://github.com/Soju06/python-kis"
-
-[tool.setuptools.dynamic]
-version = { attr = "pykis.__env__.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -70,9 +63,18 @@ include = ["pykis"]
 exclude = ["tests"]
 
 [tool.poetry]
+version = "2.1.6"  # placeholder, 실제 버전은 태그에서 주입
+
 packages = [
     { include = "pykis", from = "." },
 ]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+strict = true
+tagged-metadata = true
 
 [tool.poetry.dependencies]
 python = "^3.11"
