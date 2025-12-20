@@ -570,6 +570,51 @@ result = kis.new_feature(...)
 
 **A**: Issue를 먼저 생성하여 커뮤니티 의견을 수렴한 후 PR을 작성하세요.
 
+### Q6: 재시도 메커니즘을 어떻게 사용하나요?
+
+**A**: 429/5xx 에러에 대한 자동 재시도를 원하면 데코레이터를 사용하세요:
+
+```python
+from pykis.utils.retry import with_retry
+
+@with_retry(max_retries=5, initial_delay=2.0)
+def fetch_quote(symbol):
+    return kis.stock(symbol).quote()
+```
+
+### Q7: JSON 로깅을 어떻게 활성화하나요?
+
+**A**: 프로덕션 환경에서 ELK/Datadog과 연동하려면:
+
+```python
+from pykis.logging import enable_json_logging
+
+enable_json_logging()
+# 이후 로그는 JSON 형식으로 출력됨
+```
+
+### Q8: 예외 처리는 어떻게 하나요?
+
+**A**: 새로운 예외 클래스들이 추가되었습니다:
+
+```python
+from pykis.exceptions import (
+    KisConnectionError,
+    KisAuthenticationError,
+    KisRateLimitError,
+    KisServerError,
+)
+
+try:
+    quote = kis.stock("005930").quote()
+except KisRateLimitError:
+    # 속도 제한 - 재시도 가능
+    pass
+except KisAuthenticationError:
+    # 인증 실패 - 특별 처리
+    pass
+```
+
 ---
 
 ## 라이선스
