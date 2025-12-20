@@ -64,6 +64,63 @@
 
 ---
 
+### 옵션 C: Poetry 중심 빌드/배포 (플러그인 기반)
+
+Poetry를 주 빌드/배포 도구로 사용하는 현 상황을 반영하여, 버전을 Git 태그에서 자동으로 주입하는 접근입니다.
+
+**권장 플러그인**: `poetry-dynamic-versioning`
+
+- 기능: Git 태그에서 버전을 추출하여 `tool.poetry.version`을 동적으로 설정
+- 장점:
+  - Poetry 단일 경로로 메타데이터 관리 (간결성)
+  - 태그만으로 버전 일치 자동화 (CI/로컬 모두 유효)
+  - `__env__.py` placeholder 제거 가능 (A안과 유사한 단순화)
+- 단점:
+  - 플러그인 의존성 추가
+  - setuptools 기반 동적 버전과 중복 설정 시 충돌 위험 → 한 경로만 유지 필요
+
+**도입 절차**:
+
+1) 플러그인 설치
+
+```bash
+poetry self add poetry-dynamic-versioning
+poetry self show poetry-dynamic-versioning
+```
+
+2) 설정 추가 (`pyproject.toml`)
+
+```toml
+[tool.poetry]
+version = "0.0.0"  # placeholder, 실제 버전은 태그에서 주입
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+strict = true
+tagged-metadata = true
+```
+
+3) 코드 측 (선택)
+
+`pykis/__env__.py`에서 런타임 버전을 배포 메타에서 읽도록 단순화:
+
+```python
+from importlib.metadata import version as _dist_version
+__version__ = _dist_version("python-kis")
+```
+
+4) CI 반영
+
+- 태그 푸시 시 `poetry build` 실행 → 플러그인이 태그를 버전으로 사용
+- 비태그 브랜치: `strict=false`로 설정하거나, 사전 릴리스 규칙(`+devN`) 지정
+
+**권고사항**:
+
+- 옵션 C를 채택하는 경우, `[build-system]`의 `setuptools-dynamic` 경로는 제거하여 단일 경로(Poetry)만 사용합니다.
+- 문서에 "버전은 Git 태그로 관리한다"를 명시하고, 태그 없이 배포 금지 규칙을 CI로 enforce 합니다.
+
 ## 구현 가이드
 
 ### A안 (setuptools-scm 전환) 구현 체크리스트
