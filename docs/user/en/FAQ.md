@@ -1,0 +1,548 @@
+# Frequently Asked Questions (FAQ) - English
+
+**Language**: [한국어](../../docs/FAQ.md) | [English](FAQ.md)
+
+**Last Updated**: 2025-12-20  
+**Version**: 2.2.0
+
+---
+
+## Table of Contents
+
+1. [Installation & Setup](#installation--setup)
+2. [Authentication](#authentication)
+3. [Stock Quotes](#stock-quotes)
+4. [Orders & Trading](#orders--trading)
+5. [Account Management](#account-management)
+6. [Error Handling](#error-handling)
+7. [Advanced Topics](#advanced-topics)
+
+---
+
+## Installation & Setup
+
+### Q1: How do I install Python-KIS?
+
+**A**: Install from PyPI using pip:
+
+```bash
+pip install pykis
+```
+
+For development:
+
+```bash
+git clone https://github.com/yourusername/python-kis.git
+cd python-kis
+pip install -e ".[dev]"
+```
+
+### Q2: What are the system requirements?
+
+**A**: 
+- Python 3.8 or higher
+- Windows, macOS, or Linux
+- Internet connection
+- pip package manager
+
+### Q3: Can I use PyKIS without a KIS account?
+
+**A**: Yes, you can use the **virtual/sandbox environment** for testing:
+
+```yaml
+# config.yaml
+kis:
+  server: virtual  # Sandbox environment
+  app_key: TEST_KEY
+  app_secret: TEST_SECRET
+```
+
+No real money is involved in virtual trading.
+
+---
+
+## Authentication
+
+### Q4: How do I get my API credentials?
+
+**A**: 
+1. Visit [KIS Developer Portal](https://developer.kis.co.kr)
+2. Sign in with your KIS account
+3. Create a new application
+4. Copy your **App Key**, **App Secret**, and **Account Number**
+
+### Q5: Where should I store my API credentials?
+
+**A**: **Recommended order**:
+
+1. **Environment Variables** (most secure):
+   ```bash
+   export PYKIS_APP_KEY="your_key"
+   export PYKIS_APP_SECRET="your_secret"
+   ```
+
+2. **Configuration File** (version-controlled):
+   ```yaml
+   # config.yaml (keep out of git)
+   kis:
+     app_key: YOUR_KEY
+     app_secret: YOUR_SECRET
+   ```
+
+3. **Code** (❌ NOT RECOMMENDED - security risk):
+   ```python
+   # DON'T do this in production!
+   kis = PyKis(app_key="hardcoded_key", ...)
+   ```
+
+### Q6: Can I use multiple accounts?
+
+**A**: Yes, create multiple PyKis instances:
+
+```python
+from pykis import PyKis
+
+account1 = PyKis(
+    app_key="KEY1",
+    app_secret="SECRET1",
+    account_number="00000000-01"
+)
+
+account2 = PyKis(
+    app_key="KEY2",
+    app_secret="SECRET2",
+    account_number="00000000-02"
+)
+
+quote1 = account1.stock("005930").quote()
+quote2 = account2.stock("005930").quote()
+```
+
+---
+
+## Stock Quotes
+
+### Q7: How do I get stock price information?
+
+**A**:
+
+```python
+from pykis import PyKis
+
+kis = PyKis()
+samsung = kis.stock("005930")  # Samsung Electronics
+quote = samsung.quote()
+
+print(f"Price: {quote.price:,} KRW")
+print(f"High: {quote.high:,} KRW")
+print(f"Low: {quote.low:,} KRW")
+print(f"Volume: {quote.volume:,}")
+```
+
+### Q8: How do I get quotes for multiple stocks?
+
+**A**:
+
+```python
+import pandas as pd
+
+symbols = ["005930", "000660", "051910"]
+quotes = []
+
+for symbol in symbols:
+    quote = kis.stock(symbol).quote()
+    quotes.append({
+        "Symbol": symbol,
+        "Price": quote.price,
+        "Volume": quote.volume
+    })
+
+df = pd.DataFrame(quotes)
+print(df)
+```
+
+### Q9: How can I get real-time price updates?
+
+**A**: Use WebSocket subscription (requires `websockets` library):
+
+```bash
+pip install websockets
+```
+
+```python
+async def on_price_update(quote):
+    print(f"New price: {quote.price:,} KRW")
+
+samsung = kis.stock("005930")
+await samsung.subscribe(callback=on_price_update)
+```
+
+### Q10: What stock codes should I use?
+
+**A**: Use Korean stock codes (ISIN codes):
+
+```python
+# Samsung Electronics
+quote = kis.stock("005930").quote()
+
+# SK Hynix
+quote = kis.stock("000660").quote()
+
+# LG Electronics
+quote = kis.stock("066570").quote()
+```
+
+See [QUICKSTART.md](./QUICKSTART.md#stock-codes-popular) for popular stocks.
+
+---
+
+## Orders & Trading
+
+### Q11: How do I place a buy order?
+
+**A**:
+
+```python
+# Buy 10 shares at 60,000 KRW
+order = kis.stock("005930").buy(
+    quantity=10,
+    price=60000
+)
+
+print(f"Order ID: {order.order_id}")
+print(f"Status: {order.status}")
+```
+
+### Q12: How do I place a sell order?
+
+**A**:
+
+```python
+# Sell 5 shares at 61,000 KRW
+order = kis.stock("005930").sell(
+    quantity=5,
+    price=61000
+)
+```
+
+### Q13: How do I cancel an order?
+
+**A**:
+
+```python
+# Cancel an order
+kis.stock("005930").cancel(order_id="12345")
+
+# Or get pending orders and cancel
+account = kis.account()
+orders = account.orders(status="pending")
+for order in orders:
+    order.cancel()
+```
+
+### Q14: How do I check order status?
+
+**A**:
+
+```python
+account = kis.account()
+
+# Get all orders
+all_orders = account.orders()
+
+# Get pending orders
+pending = account.orders(status="pending")
+
+# Get executed orders
+executed = account.orders(status="executed")
+
+# Get cancelled orders
+cancelled = account.orders(status="cancelled")
+
+for order in all_orders:
+    print(f"{order.symbol}: {order.status} ({order.quantity}@{order.price})")
+```
+
+---
+
+## Account Management
+
+### Q15: How do I check my account balance?
+
+**A**:
+
+```python
+account = kis.account()
+balance = account.balance()
+
+print(f"Cash: {balance.cash:,} KRW")
+print(f"Evaluated Amount: {balance.evaluated_amount:,} KRW")
+print(f"Total Assets: {balance.total_assets:,} KRW")
+print(f"Profit/Loss: {balance.profit_loss:,} KRW ({balance.profit_rate:+.2f}%)")
+```
+
+### Q16: How do I get my holdings?
+
+**A**:
+
+```python
+account = kis.account()
+holdings = account.holdings()
+
+for holding in holdings:
+    print(f"{holding.symbol}: {holding.quantity} shares @ {holding.average_price:,} KRW")
+    print(f"  Current Value: {holding.current_value:,} KRW")
+    print(f"  Profit/Loss: {holding.profit_loss:,} KRW ({holding.profit_rate:+.2f}%)")
+```
+
+### Q17: How do I calculate profit/loss?
+
+**A**:
+
+```python
+holding = kis.account().holdings()[0]
+
+# Individual holding P/L
+profit_loss = holding.current_value - (holding.average_price * holding.quantity)
+profit_rate = (holding.current_value / (holding.average_price * holding.quantity) - 1) * 100
+
+# Total account P/L
+balance = kis.account().balance()
+total_pl = balance.profit_loss
+total_rate = balance.profit_rate
+
+print(f"Total Profit/Loss: {total_pl:,} KRW ({total_rate:+.2f}%)")
+```
+
+---
+
+## Error Handling
+
+### Q18: How do I handle API errors?
+
+**A**:
+
+```python
+from pykis.exceptions import (
+    KisConnectionError,
+    KisAuthenticationError,
+    KisRateLimitError,
+    KisServerError
+)
+
+try:
+    quote = kis.stock("005930").quote()
+except KisAuthenticationError:
+    print("Invalid credentials - check app key and secret")
+except KisRateLimitError:
+    print("Too many requests - wait a moment before retrying")
+except KisConnectionError:
+    print("Network error - will retry automatically")
+except KisServerError:
+    print("Server error (5xx) - will retry automatically")
+except Exception as e:
+    print(f"Unknown error: {e}")
+```
+
+### Q19: What is rate limiting and how do I handle it?
+
+**A**: Korea Investment & Securities API has rate limits (typically 50-100 requests per minute).
+
+**Solution 1: Automatic Retry** (Recommended)
+
+```python
+from pykis.utils.retry import with_retry
+
+@with_retry(
+    max_retries=5,
+    initial_delay=2.0,
+    max_delay=30.0,
+    exponential_base=2.0
+)
+def fetch_quote(symbol):
+    return kis.stock(symbol).quote()
+
+quote = fetch_quote("005930")  # Auto-retries on rate limit
+```
+
+**Solution 2: Manual Delay**
+
+```python
+import time
+
+for symbol in symbols:
+    quote = kis.stock(symbol).quote()
+    time.sleep(1)  # Wait 1 second between requests
+```
+
+### Q20: How do I enable structured logging?
+
+**A**:
+
+```python
+from pykis.logging import enable_json_logging, get_logger
+
+# Enable JSON logging (ELK compatible)
+enable_json_logging()
+
+# Get logger
+logger = get_logger(__name__)
+
+# Logs will be in JSON format
+logger.info("Trading activity", extra={
+    "symbol": "005930",
+    "action": "buy",
+    "quantity": 10
+})
+
+# Output:
+# {"timestamp": "2025-12-20T14:30:45Z", "level": "INFO", "symbol": "005930", ...}
+```
+
+---
+
+## Advanced Topics
+
+### Q21: How do I use async operations?
+
+**A**:
+
+```python
+import asyncio
+from pykis.utils.retry import with_async_retry
+
+@with_async_retry(max_retries=5)
+async def fetch_quote_async(symbol):
+    return kis.stock(symbol).quote()
+
+async def main():
+    # Fetch multiple quotes in parallel
+    quotes = await asyncio.gather(
+        fetch_quote_async("005930"),
+        fetch_quote_async("000660"),
+        fetch_quote_async("051910")
+    )
+    return quotes
+
+results = asyncio.run(main())
+```
+
+### Q22: How do I optimize API calls?
+
+**A**:
+
+```python
+# ✅ Good: Batch similar requests
+symbols = ["005930", "000660", "051910"]
+quotes = [kis.stock(sym).quote() for sym in symbols]
+
+# ❌ Bad: Redundant calls
+quote1 = kis.stock("005930").quote()
+quote1_again = kis.stock("005930").quote()  # Unnecessary!
+
+# ✅ Better: Cache results
+quote_cache = {}
+for symbol in symbols:
+    if symbol not in quote_cache:
+        quote_cache[symbol] = kis.stock(symbol).quote()
+
+print(quote_cache["005930"])
+```
+
+### Q23: How do I monitor API usage?
+
+**A**:
+
+```python
+from pykis.logging import enable_json_logging, get_logger
+import time
+
+enable_json_logging()
+logger = get_logger(__name__)
+
+start_time = time.time()
+request_count = 0
+
+for symbol in symbols:
+    try:
+        quote = kis.stock(symbol).quote()
+        request_count += 1
+        logger.info("API call successful", extra={
+            "symbol": symbol,
+            "price": quote.price
+        })
+    except Exception as e:
+        logger.error("API call failed", extra={
+            "symbol": symbol,
+            "error": str(e)
+        })
+
+elapsed = time.time() - start_time
+logger.info("Summary", extra={
+    "total_requests": request_count,
+    "elapsed_seconds": elapsed,
+    "requests_per_second": request_count / elapsed
+})
+```
+
+---
+
+## Troubleshooting
+
+### "Authentication failed"
+
+**Check**:
+- [ ] App Key is correct
+- [ ] App Secret is correct
+- [ ] Credentials are not expired
+- [ ] Using correct server mode (real vs virtual)
+
+### "Market is closed"
+
+**Note**: Korean stock market operates:
+- **Hours**: 09:00 ~ 15:30 KST
+- **Days**: Monday ~ Friday (excluding holidays)
+
+See [REGIONAL_GUIDES.md](../../../docs/guidelines/REGIONAL_GUIDES.md) for Korean holidays.
+
+### "Too many requests (429)"
+
+**Solution**:
+1. Use auto-retry decorator
+2. Add delays between requests
+3. Check KIS API rate limits
+4. Implement request queuing
+
+### "ModuleNotFoundError: No module named 'pykis'"
+
+**Solution**:
+```bash
+pip install pykis
+# or for development
+pip install -e .
+```
+
+---
+
+## Additional Resources
+
+- 📚 **Full Documentation**: [README.md](./README.md)
+- 🚀 **Quick Start**: [QUICKSTART.md](./QUICKSTART.md)
+- 🛠️ **Configuration**: [CONFIGURATION.md](./CONFIGURATION.md)
+- 🌍 **Regional Guide**: [REGIONAL_GUIDES.md](../../../docs/guidelines/REGIONAL_GUIDES.md)
+- 🔐 **API Stability**: [API_STABILITY_POLICY.md](../../../docs/guidelines/API_STABILITY_POLICY.md)
+- 💻 **Examples**: [examples/](../../../examples/)
+
+---
+
+## Getting Help
+
+- 💬 **GitHub Issues**: Report bugs at [GitHub Issues](https://github.com/yourusername/python-kis/issues)
+- 💭 **Discussions**: Ask questions at [GitHub Discussions](https://github.com/yourusername/python-kis/discussions)
+- 📧 **Email**: support@python-kis.org
+
+---
+
+**Version**: 2.2.0  
+**Last Updated**: 2025-12-20  
+**Status**: 🟢 Stable
