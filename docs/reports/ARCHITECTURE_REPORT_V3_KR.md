@@ -233,18 +233,19 @@
 
 | 항목 | 값 | 상태 |
 |------|-----|------|
-| **전체 라인 수** | 7,227 | - |
-| **커버된 라인** | 6,793 | - |
-| **커버리지** | **94.0%** 🟢 | 목표 80%+ 초과달성 |
-| **목표** | 80%+ | ✅ 달성 |
-| **여유** | +14.0% | 우수 |
+| **전체 라인 수** | 7,438 | - |
+| **커버된 라인** | 6,879 | - |
+| **커버리지** | **89.7%** 🟡 | 목표 90% 근접 달성 |
+| **목표** | 90%+ | 🟡 0.3% 부족 |
+| **여유** | -0.3% | 목표 근접 |
 
-**테스트 실행 현황**:
-- ✅ 전체 테스트: 840 passed, 5 skipped
-- ✅ 단위 테스트 커버리지: 94% (확정)
-- ⏳ 통합 테스트: 의존성 설치(`requests-mock`) 후 실행 예정
+**테스트 실행 현황 (2025-12-20)**:
+- ✅ 전체 테스트: 874 passed, 19 skipped
+- ✅ 단위 테스트 커버리지: 89.7% (목표 90% 근접)
+- ✅ 통합 테스트: 31개 (기존 25개 + 신규 6개)
+- ✅ 성능 테스트: 43개 (기존 35개 + 신규 8개)
 
-**평가**: 🟢 **4.5/5.0 - 우수 (단위 기준, 유지 단계)**
+**평가**: 🟡 **4.3/5.0 - 양호 (목표 0.3% 부족, 추가 테스트로 달성 가능)**
 
 ### 2.4.2 모듈별 커버리지 (2025-12-17)
 
@@ -1367,25 +1368,66 @@ class TestPublicAPISize (2 테스트)
 
 ### 3.7.4 구현 체크리스트
 
-**Phase 1 구현 (v2.2.0)**:
+**Phase 1 구현 (v2.2.0)** - ✅ **완료 (2025-12-20)**:
 
-**pykis 폴더** (즉시 시작):
-- [ ] `pykis/public_types.py` 신규 작성 (115줄)
-  - [ ] TypeAlias 7개 정의 (Quote, Balance, Order, Chart, Orderbook, MarketInfo, TradingHours)
-  - [ ] 각 타입별 Docstring 및 사용 예제 포함
-  - [ ] `__all__` 정의
-- [ ] `pykis/__init__.py` 수정 (100줄 변경)
-  - [ ] public_types 재import
-  - [ ] `__all__` 15개로 축소 (PyKis, KisAuth, 7개 공개 타입, SimpleKIS, create_client, save_config_interactive)
-  - [ ] `__getattr__()` 메서드 추가 (deprecated import 처리)
-  - [ ] DeprecationWarning 로직 구현
-  - [ ] 문서화 주석 갱신
-- [ ] `pykis/types.py` 문서 업데이트 (docstring만)
-  - [ ] "v3.0.0에서 제거 예정" 명시
-  - [ ] 사용자 안내 및 대체 경로 제시
-  - [ ] 고급 사용자용 docstring 추가
+**pykis 폴더** (완료):
+- [x] `pykis/public_types.py` 신규 작성 (115줄)
+  - [x] TypeAlias 7개 정의 (Quote, Balance, Order, Chart, Orderbook, MarketInfo, TradingHours)
+  - [x] 각 타입별 Docstring 및 사용 예제 포함
+  - [x] `__all__` 정의
+- [x] `pykis/__init__.py` 수정 (100줄 변경)
+  - [x] public_types 재import
+  - [x] `__all__` 15개로 축소 (PyKis, KisAuth, 7개 공개 타입, SimpleKIS, create_client, save_config_interactive)
+  - [x] `__getattr__()` 메서드 추가 (deprecated import 처리)
+  - [x] DeprecationWarning 로직 구현
+  - [x] 문서화 주석 갱신
+- [x] `pykis/types.py` 문서 업데이트 (docstring만)
+  - [x] "v3.0.0에서 제거 예정" 명시
+  - [x] 사용자 안내 및 대체 경로 제시
+  - [x] 고급 사용자용 docstring 추가
 
-**tests 폴더** (병렬 진행):
+**tests 폴더** (완료):
+- [x] `tests/unit/test_public_api_imports.py` 신규 작성 (200줄, 11개 테스트)
+  - [x] TestPublicImports (7개): core classes, public types, deprecated imports, backward compatibility
+  - [x] TestTypeConsistency (2개): Quote, Balance 타입 일관성
+  - [x] TestPublicAPISize (2개): API 크기, 필수 항목 포함 여부
+- [x] `tests/unit/test_compatibility.py` 신규 작성 (40줄, 1개 테스트)
+  - [x] test_old_style_import_still_works: v2.0.x 호환성 검증
+- [x] 기존 테스트 호환성 검증
+  - [x] test___env__.py: VERSION → __version__ 변경
+  - [x] test_logging.py: pykis_logging import 추가
+  - [x] test_exceptions.py: Mock response 정확한 속성 추가
+  - [x] 874개 테스트 통과 (19 skipped)
+
+**문서화** (부분 완료):
+- [ ] `CHANGELOG.md` 마이그레이션 가이드 추가
+  - [ ] v2.2.0 변경사항 요약
+  - [ ] 사용자 마이그레이션 가이드
+  - [ ] Deprecated 경로 안내
+  - [ ] v3.0.0 Breaking Change 미리보기
+- [ ] `docs/architecture/ARCHITECTURE.md` 공개 API 섹션 추가
+- [ ] `QUICKSTART.md` 작성 (5분 빠른 시작)
+  - [ ] 설치 가이드
+  - [ ] 기본 사용법
+  - [ ] 주요 API 예제
+
+**검증** (완료):
+- [x] 전체 테스트 통과: 874 passed, 19 skipped
+- [x] 커버리지: 89.7% (목표 90% 근접, -0.3%)
+- [x] DeprecationWarning 정상 발생 확인
+  - [x] `from pykis import KisObjectProtocol` 실행 시 경고 발생
+  - [x] 경고 메시지 명확성 확인
+- [x] Type hint 자동완성 개선 확인
+  - [x] IDE (VS Code)에서 15개 항목 표시
+  - [x] 각 타입별 Docstring 미리보기 동작
+
+**릴리스** (대기):
+- [ ] v2.2.0 릴리스 준비
+  - [x] 코드 구현 완료
+  - [x] 테스트 통과 (874/893)
+  - [x] 커버리지 89.7% (목표 90% 근접)
+  - [ ] 문서 작성 완료 (70% 진행 중)
+  - [ ] 최종 검수 완료
 - [ ] `tests/unit/test_public_api_imports.py` 신규 작성 (200줄, 11개 테스트)
   - [ ] TestPublicImports (7개): core classes, public types, deprecated imports, backward compatibility
   - [ ] TestTypeConsistency (2개): Quote, Balance 타입 일관성
@@ -2581,54 +2623,40 @@ Protocol/Mixin 이해 필요 → 진입 장벽 높음 → 초보자 이탈
 
 ✅ **완료된 작업**:
 - ✅ Phase 2 Week 3-4 100% 완료 (CI/CD, pre-commit, 통합/성능 테스트)
+- ✅ Phase 1 공개 타입 모듈 분리 완료 (pykis/public_types.py 생성)
+- ✅ 테스트 오류 수정 및 호환성 검증 완료
+  - test___env__.py: VERSION → __version__ 변경
+  - test_logging.py: pykis_logging import 추가
+  - test_exceptions.py: Mock response 정확한 속성 추가
+- ✅ 전체 테스트 통과: 874 passed, 19 skipped
+- ✅ 커버리지 재검증: 89.7% (목표 90% 근접, -0.3%)
 - ✅ `.vscode/settings.json` JSON 검증 통과 및 커밋 완료
 - ✅ PlantUML 다이어그램 파일 구조 정리 및 생성 설정
 - ✅ 아키텍처 보고서 v3 (본 문서) 작성 완료
 
 🟡 **진행 중인 작업**:
-- Phase 1 구현 계획 수립 완료 (체크리스트 정의)
-- public_types.py 설계 완료 (3.2.1 섹션 참조)
-- 테스트 케이스 설계 완료 (3.7.4 섹션 참조)
+- 커버리지 90% 달성을 위한 추가 테스트 (0.3% 부족)
+- 문서화 작업 (QUICKSTART.md, CHANGELOG.md)
 
 🔴 **미시작 작업** (우선순위 순):
 
-#### 즉시 시작 (1순위 - Phase 1)
-1. **pykis/public_types.py 구현** (예상 2-3시간)
-   - 파일: pykis/public_types.py 신규 작성 (115줄)
-   - 내용: 7개 TypeAlias 정의 + Docstring + 예제
-   - 의존성: 없음 (기존 response 타입 재import)
+#### 즉시 시작 (1순위 - 커버리지 90% 달성)
+1. **추가 테스트 작성** (예상 1-2시간)
+   - helpers.py 커버리지 향상 (27% → 80%+): 47줄 미커버
+   - api/account/daily_order.py 개선 (78% → 85%+): 57줄 미커버
+   - api/account/order_profit.py 개선 (76% → 85%+): 60줄 미커버
+   - 예상 효과: 0.5-1.0% 커버리지 증가
 
-2. **pykis/__init__.py 리팩토링** (예상 2-3시간)
-   - `__all__` 축소 (154 → 15개)
-   - `__getattr__()` 메서드 추가 (Deprecated 처리)
-   - DeprecationWarning 로직 구현
-   - 의존성: public_types.py 완료 후
+2. **문서화 작업** (예상 2-3시간)
+   - QUICKSTART.md 작성 (5분 빠른 시작 가이드)
+   - CHANGELOG.md v2.2.0 마이그레이션 가이드
+   - docs/architecture/ARCHITECTURE.md 공개 API 섹션 추가
 
-3. **tests/unit/test_public_api_imports.py 작성** (예상 2-3시간)
-   - 11개 테스트 케이스 구현 (설계: 3.7.4 섹션 참조)
-   - 의존성: public_types.py + __init__.py 리팩토링 완료 후
-
-4. **tests/unit/test_compatibility.py 작성** (예상 30분)
-   - 1개 호환성 테스트 구현
-   - 의존성: __init__.py 리팩토링 완료 후
-
-#### 병렬 진행 (1.5순위 - 문서)
-5. **QUICKSTART.md 작성** (예상 1-2시간)
-   - 5분 내 빠른 시작 가이드
-   - 설치, 기본 사용, 주요 API 예제
-   - 의존성: 없음 (병렬 작성 가능)
-
-6. **CHANGELOG.md 마이그레이션 가이드** (예상 1시간)
-   - v2.2.0 주요 변경사항
-   - 사용자 마이그레이션 가이드
-   - Deprecated 경로 안내
-   - 의존성: public_types.py 설계 완료 후
-
-#### 후속 (2순위 - Phase 2+)
-7. 예제 코드 추가 (10개+)
-8. 다국어 문서 (일본어, 영어)
-9. API 레퍼런스 자동 생성
-10. 커뮤니티 이슈 처리
+#### 병렬 진행 (1.5순위 - 예제 작성)
+3. **예제 코드 추가** (예상 3-4시간)
+   - 기본 사용 예제 (5개)
+   - 고급 사용 예제 (5개)
+   - 통합 예제 (실전/모의)
 
 ### 예상 소요시간
 
@@ -2703,91 +2731,180 @@ git commit -m "docs: add migration guide and quickstart
 
 ### 📋 작업 상태 요약 (2025-12-20 기준)
 
-**전체 진행률**: ~15% (Phase 2 완료, Phase 1 대기 중)
+**전체 진행률**: ~85% (Phase 1 완료, Phase 2 완료, 문서화 진행 중)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ✅ 완료 (70%)          🟡 진행 중 (10%)    🔴 미시작 (20%)  │
+│  ✅ 완료 (85%)          🟡 진행 중 (10%)    🔴 미시작 (5%)   │
 ├─────────────────────────────────────────────────────────────┤
-│ • Phase 2 Week 3-4     • 보고서 작성     • Phase 1 구현    │
-│ • CI/CD 자동화         • 설계 문서       • 예제/가이드     │
-│ • pre-commit 설정      • 체크리스트     • 커뮤니티 확대   │
-│ • 테스트 인프라                                            │
+│ • Phase 1 코드 완료    • 문서화 작업       • 릴리스 준비   │
+│ • Phase 2 Week 3-4     • 커버리지 개선     • 예제 추가     │
+│ • 테스트 인프라        • QUICKSTART.md                     │
 │ • 코드 품질 기준선                                         │
+│ • 공개 타입 모듈                                           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 🎯 즉시 실행 (Phase 1, 9-15시간)
+### 🎯 즉시 실행 (커버리지 90% 달성, 2-3시간)
 
-**우선순위**: 🔴 **높음** (v2.2.0 릴리스 필수)
+**우선순위**: 🔴 **최고** (릴리스 필수)
 
-#### 1단계: 코드 구현 (5-6시간)
+#### 1단계: 커버리지 향상 (1-2시간)
 ```
-[ ] pykis/public_types.py 신규 작성 (2-3h)
-    └─ 7개 TypeAlias + Docstring + 예제
+[ ] helpers.py 테스트 추가 (27% → 80%+)
+    └─ save_config_interactive, create_client 테스트 (47줄)
 
-[ ] pykis/__init__.py 리팩토링 (2-3h)
-    └─ __all__ 축소 + __getattr__() + DeprecationWarning
+[ ] api/account/daily_order.py 테스트 추가 (78% → 85%+)
+    └─ 예외 처리, 엣지 케이스 테스트 (57줄)
 
-[ ] pykis/types.py 문서화 (30m)
-    └─ Docstring 추가 (v3.0.0 제거 예정 명시)
-```
+[ ] api/account/order_profit.py 테스트 추가 (76% → 85%+)
+    └─ 수익/손실 계산 엣지 케이스 (60줄)
 
-#### 2단계: 테스트 작성 (3-4시간)
-```
-[ ] tests/unit/test_public_api_imports.py (2-3h)
-    └─ 11개 테스트 케이스 (import, consistency, size)
-
-[ ] tests/unit/test_compatibility.py (30m-1h)
-    └─ 1개 호환성 테스트 (v2.0.x code still works)
-
-[ ] 기존 테스트 호환성 검증 (1h)
-    └─ pytest tests/ 전체 통과 확인
+예상 효과: 89.7% → 90.2% (목표 달성)
 ```
 
-#### 3단계: 검증 (2시간)
+#### 2단계: 문서 완성 (1-2시간)
 ```
-[ ] DeprecationWarning 정상 발생 확인 (30m)
-[ ] Type hint 자동완성 개선 확인 (30m)
-[ ] 커버리지 90%+ 유지 확인 (30m)
-[ ] 전체 통합 테스트 (30m)
-```
-
-#### 4단계: 문서 (1-2시간)
-```
-[ ] CHANGELOG.md 마이그레이션 가이드 (1h)
 [ ] QUICKSTART.md 작성 (1h)
+    └─ 5분 빠른 시작, 설치, 기본 사용
+
+[ ] CHANGELOG.md v2.2.0 (1h)
+    └─ 변경사항, 마이그레이션 가이드
+
+[ ] docs/architecture/ARCHITECTURE.md 업데이트 (30m)
+    └─ 공개 API 섹션 추가
 ```
 
-### 📅 병렬 실행 (문서, 1-2시간)
+### 📅 단기 실행 (v2.2.0 릴리스, 1주)
 
-**우선순위**: 🟡 **중간** (Phase 1과 동시 진행 권장)
-
-```
-[ ] QUICKSTART.md 작성 (5분 빠른 시작)
-[ ] CHANGELOG.md v2.2.0 마이그레이션 가이드
-[ ] docs/architecture/ARCHITECTURE.md 공개 API 섹션 추가
-```
-
-### 🚀 다음 단계 (Phase 2+)
-
-**우선순위**: 🟢 **낮음** (Phase 1 완료 후)
+**우선순위**: 🟡 **높음** (2025-12-27 목표)
 
 ```
-Phase 2 (2주, 2026-01-01):
-[ ] 10개+ 예제 코드 추가
+Phase 2.5: 릴리스 준비 (2일)
+[ ] 전체 테스트 검증 (Windows/Linux/macOS)
+[ ] 문서 검수 및 교정
+[ ] 예제 코드 동작 확인
+[ ] CHANGELOG.md 최종 확인
+
+Phase 2.6: v2.2.0 릴리스 (1일)
+[ ] Git 태그 생성 (v2.2.0)
+[ ] PyPI 배포
+[ ] GitHub Release Notes
+[ ] 사용자 알림 (Discussions)
+```
+
+### 🚀 중기 실행 (Phase 3, 1개월)
+
+**우선순위**: 🟢 **중간** (2026-01-20 목표)
+
+```
+Phase 3: 커뮤니티 확장 (2주)
+[ ] 예제 코드 10개 추가
+    └─ 기본 5개 + 고급 5개
 [ ] 다국어 문서 시작 (일본어)
+    └─ README.ja.md, QUICKSTART.ja.md
 [ ] API 레퍼런스 자동 생성
+    └─ Sphinx + autodoc
 
-Phase 3 (1개월, 2026-01-15):
-[ ] 커뮤니티 확대 (Discussions, Issues)
-[ ] 기여자 가이드 작성
-[ ] 릴리스 자동화 (정식/프리릴리스)
-
-Phase 4+ (지속):
+Phase 4: 고급 기능 (2주)
 [ ] SimpleKIS 고도화
-[ ] 플러그인 시스템 (향후)
-[ ] GraphQL API 레이어 (검토 중)
+    └─ 초보자용 래퍼 API 완성
+[ ] 플러그인 시스템 검토
+    └─ 확장 가능한 구조 설계
+[ ] GraphQL API 레이어 (검토)
+    └─ REST → GraphQL 변환 계층
+```
+
+### 📊 개선 권장 사항 (2025-12-20 분석)
+
+#### 1. 커버리지 개선 대상 (우선순위순)
+
+| 모듈 | 현재 | 목표 | 미커버 줄 수 | 권장 작업 |
+|------|------|------|-------------|----------|
+| `helpers.py` | 27% | 80% | 47줄 | 🔴 긴급 - 초보자 도구 테스트 필수 |
+| `api/account/order_profit.py` | 76% | 85% | 60줄 | 🟡 높음 - 수익/손실 계산 검증 |
+| `api/account/daily_order.py` | 78% | 85% | 57줄 | 🟡 높음 - 일일 주문 엣지 케이스 |
+| `api/account/order_modify.py` | 78% | 85% | 23줄 | 🟢 중간 - 주문 수정 예외 처리 |
+| `api/stock/order_book.py` | 78% | 85% | 26줄 | 🟢 중간 - 호가 데이터 검증 |
+
+**예상 효과**: 5개 모듈 개선 시 **89.7% → 91.5%** (+1.8%)
+
+#### 2. 아키텍처 개선 권장사항
+
+**a) 코드 복잡도 개선**
+- `dynamic.py` (복잡도: 높음) → 리팩토링 권장
+  - 함수 분리 및 단순화
+  - 타입 추론 로직 최적화
+
+**b) 문서화 개선**
+- Docstring 누락 함수: ~50개
+- 권장: NumPy 스타일 Docstring 적용
+- 도구: pydocstyle, sphinx-napoleon
+
+**c) 타입 힌트 완성도**
+- 현재: 95% (우수)
+- 목표: 99%+
+- 권장: mypy strict 모드 적용
+
+#### 3. 테스트 전략 개선
+
+**a) 통합 테스트 확대**
+- 현재: 31개 (6개 추가 완료)
+- 목표: 50개+
+- 권장 시나리오:
+  - 재시도/타임아웃 (4개)
+  - 다중 계좌 전환 (3개)
+  - WebSocket 연결 복원 (3개)
+
+**b) 성능 테스트 보강**
+- 현재: 43개 (8개 추가 완료)
+- 목표: 60개+
+- 권장 벤치마크:
+  - API 호출 배치 처리 (10개)
+  - 대량 데이터 변환 (5개)
+  - 메모리 프로파일링 (5개)
+
+**c) 엣지 케이스 테스트**
+- 현재: 부족
+- 권장 추가:
+  - 빈 응답, None 값 처리
+  - 잘못된 형식 데이터
+  - 경계값 테스트
+
+#### 4. CI/CD 파이프라인 강화
+
+**a) 플랫폼 확대** (✅ 완료)
+- Windows/Linux/macOS 매트릭스
+- Python 3.11, 3.12 버전 테스트
+
+**b) 추가 검증 단계**
+- [ ] 보안 취약점 스캔 (Bandit)
+- [ ] 의존성 검사 (Safety)
+- [ ] 라이센스 검증 (pip-licenses)
+
+**c) 배포 자동화**
+- [ ] 정식 릴리스 자동화 (main 태그)
+- [ ] 프리릴리스 자동화 (develop 브랜치)
+- [ ] 릴리스 노트 자동 생성
+
+#### 5. 코드 품질 메트릭
+
+**현재 상태**:
+```
+코드 라인:      7,438줄
+커버리지:       89.7% (목표 90%)
+타입 힌트:      95%+
+Docstring:      85%+
+복잡도:         양호 (일부 높음)
+```
+
+**목표 (v3.0.0)**:
+```
+코드 라인:      8,000줄
+커버리지:       92%+
+타입 힌트:      99%+
+Docstring:      95%+
+복잡도:         모두 낮음-중간
 ```
 
 ---
