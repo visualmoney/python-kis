@@ -70,7 +70,6 @@ include = ["pykis"]
 exclude = ["tests"]
 
 [tool.poetry]
-version = "2.1.6"
 packages = [
     { include = "pykis", from = "." },
 ]
